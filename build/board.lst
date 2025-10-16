@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccRYAMGh.s 			page 1
+ARM GAS  /tmp/ccrivIiY.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   29:Src/board.c   **** #include "FreeRTOS.h"
   30:Src/board.c   **** #include "queue.h"
   31:Src/board.c   **** #include "task.h"
-ARM GAS  /tmp/ccRYAMGh.s 			page 2
+ARM GAS  /tmp/ccrivIiY.s 			page 2
 
 
   32:Src/board.c   **** #include "usbd_gs_can.h"
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   86:Src/board.c   **** 	RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   87:Src/board.c   **** 	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
   88:Src/board.c   **** 	RCC_OscInitStruct.PLL.PLLFRACN = 0;
-ARM GAS  /tmp/ccRYAMGh.s 			page 3
+ARM GAS  /tmp/ccrivIiY.s 			page 3
 
 
   89:Src/board.c   **** 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  143:Src/board.c   **** 	GPIO_InitStruct.Pin = USER_BTN_K2_Pin;
  144:Src/board.c   **** 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
  145:Src/board.c   **** 	GPIO_InitStruct.Pull = GPIO_PULLUP;
-ARM GAS  /tmp/ccRYAMGh.s 			page 4
+ARM GAS  /tmp/ccrivIiY.s 			page 4
 
 
  146:Src/board.c   **** 	HAL_GPIO_Init(USER_BTN_K2_GPIO_Port, &GPIO_InitStruct);
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   51 000a 2149     		ldr	r1, .L9
   52 000c 2148     		ldr	r0, .L9+4
   53 000e D0F8B000 		ldr	r0, [r0, #176]
-ARM GAS  /tmp/ccRYAMGh.s 			page 5
+ARM GAS  /tmp/ccrivIiY.s 			page 5
 
 
   54 0012 FFF7FEFF 		bl	xQueueGenericSend
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   92 003a EDD1     		bne	.L2
  158:Src/board.c   **** 			prev_pressed_state = GPIO_PIN_RESET;
   93              		.loc 1 158 82 discriminator 1 view .LVU18
-ARM GAS  /tmp/ccRYAMGh.s 			page 6
+ARM GAS  /tmp/ccrivIiY.s 			page 6
 
 
   94 003c 002D     		cmp	r5, #0
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  130              		.loc 1 169 4 is_stmt 1 view .LVU36
  169:Src/board.c   **** 			frame_object.frame.classic_can->data[4] = 0x55;
  131              		.loc 1 169 44 is_stmt 0 view .LVU37
-ARM GAS  /tmp/ccRYAMGh.s 			page 7
+ARM GAS  /tmp/ccrivIiY.s 			page 7
 
 
  132 0064 4422     		movs	r2, #68
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  170 008c 2C46     		mov	r4, r5
  171 008e CAE7     		b	.L3
  172              	.L10:
-ARM GAS  /tmp/ccRYAMGh.s 			page 8
+ARM GAS  /tmp/ccrivIiY.s 			page 8
 
 
  173              		.align	2
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  222              	.LBB2:
   68:Src/board.c   **** 
  223              		.loc 1 68 2 view .LVU61
-ARM GAS  /tmp/ccRYAMGh.s 			page 9
+ARM GAS  /tmp/ccrivIiY.s 			page 9
 
 
  224 001e 0023     		movs	r3, #0
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   76:Src/board.c   **** 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
  264              		.loc 1 76 2 is_stmt 1 view .LVU76
   76:Src/board.c   **** 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-ARM GAS  /tmp/ccRYAMGh.s 			page 10
+ARM GAS  /tmp/ccrivIiY.s 			page 10
 
 
  265              		.loc 1 76 29 is_stmt 0 view .LVU77
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
   86:Src/board.c   **** 	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
  301              		.loc 1 86 2 is_stmt 1 view .LVU96
   86:Src/board.c   **** 	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
-ARM GAS  /tmp/ccRYAMGh.s 			page 11
+ARM GAS  /tmp/ccrivIiY.s 			page 11
 
 
  302              		.loc 1 86 31 is_stmt 0 view .LVU97
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  103:Src/board.c   **** 	RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
  339              		.loc 1 103 2 is_stmt 1 view .LVU115
  103:Src/board.c   **** 	RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
-ARM GAS  /tmp/ccRYAMGh.s 			page 12
+ARM GAS  /tmp/ccrivIiY.s 			page 12
 
 
  340              		.loc 1 103 35 is_stmt 0 view .LVU116
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  383              		.cfi_endproc
  384              	.LFE149:
  386              		.section	.text.MX_GPIO_Init,"ax",%progbits
-ARM GAS  /tmp/ccRYAMGh.s 			page 13
+ARM GAS  /tmp/ccrivIiY.s 			page 13
 
 
  387              		.align	1
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  121:Src/board.c   **** 	__HAL_RCC_GPIOC_CLK_ENABLE();
  433              		.loc 1 121 2 view .LVU137
  434              	.LBB4:
-ARM GAS  /tmp/ccRYAMGh.s 			page 14
+ARM GAS  /tmp/ccrivIiY.s 			page 14
 
 
  121:Src/board.c   **** 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  123:Src/board.c   **** 	__HAL_RCC_GPIOD_CLK_ENABLE();
  474              		.loc 1 123 2 view .LVU153
  475 0070 039A     		ldr	r2, [sp, #12]
-ARM GAS  /tmp/ccRYAMGh.s 			page 15
+ARM GAS  /tmp/ccrivIiY.s 			page 15
 
 
  476              	.LBE6:
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  515              	.LVL20:
  136:Src/board.c   **** 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
  516              		.loc 1 136 2 view .LVU169
-ARM GAS  /tmp/ccRYAMGh.s 			page 16
+ARM GAS  /tmp/ccrivIiY.s 			page 16
 
 
  136:Src/board.c   **** 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  555              	.L23:
  556 00ce 00BF     		.align	2
  557              	.L22:
-ARM GAS  /tmp/ccRYAMGh.s 			page 17
+ARM GAS  /tmp/ccrivIiY.s 			page 17
 
 
  558 00d0 00440258 		.word	1476543488
@@ -1018,7 +1018,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  604              		.loc 1 194 2 view .LVU193
  605 0022 0024     		movs	r4, #0
  606 0024 0094     		str	r4, [sp]
-ARM GAS  /tmp/ccRYAMGh.s 			page 18
+ARM GAS  /tmp/ccrivIiY.s 			page 18
 
 
  607 0026 2346     		mov	r3, r4
@@ -1078,7 +1078,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  656              		.cfi_def_cfa_offset 4
  657              		.cfi_offset 14, -4
  658 0002 83B0     		sub	sp, sp, #12
-ARM GAS  /tmp/ccRYAMGh.s 			page 19
+ARM GAS  /tmp/ccrivIiY.s 			page 19
 
 
  659              	.LCFI12:
@@ -1138,7 +1138,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  707 0004 FFF7FEFF 		bl	led_update
  708              	.LVL27:
  208:Src/board.c   **** }
-ARM GAS  /tmp/ccRYAMGh.s 			page 20
+ARM GAS  /tmp/ccrivIiY.s 			page 20
 
 
  709              		.loc 1 208 1 is_stmt 0 view .LVU202
@@ -1198,7 +1198,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  758              	.LFE155:
  760              		.section	.text.can_on_disable_cb,"ax",%progbits
  761              		.align	1
-ARM GAS  /tmp/ccRYAMGh.s 			page 21
+ARM GAS  /tmp/ccrivIiY.s 			page 21
 
 
  762              		.global	can_on_disable_cb
@@ -1258,7 +1258,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  223:Src/board.c   **** 
  224:Src/board.c   **** void can_on_tx_cb(uint8_t channel, struct gs_host_frame *frame)
  225:Src/board.c   **** {
-ARM GAS  /tmp/ccRYAMGh.s 			page 22
+ARM GAS  /tmp/ccrivIiY.s 			page 22
 
 
  812              		.loc 1 225 1 is_stmt 1 view -0
@@ -1318,7 +1318,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  234:Src/board.c   **** 	UNUSED(frame);
  860              		.loc 1 234 2 view .LVU229
  235:Src/board.c   **** 	led_indicate_rxtx(&hled1);
-ARM GAS  /tmp/ccRYAMGh.s 			page 23
+ARM GAS  /tmp/ccrivIiY.s 			page 23
 
 
  861              		.loc 1 235 2 view .LVU230
@@ -1378,7 +1378,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  246:Src/board.c   **** }
  907              		.loc 1 246 1 view .LVU239
  908 000c 08BD     		pop	{r3, pc}
-ARM GAS  /tmp/ccRYAMGh.s 			page 24
+ARM GAS  /tmp/ccrivIiY.s 			page 24
 
 
  909              	.LVL43:
@@ -1438,7 +1438,7 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  956      00000000 
  956      00000000 
  956      00000000 
-ARM GAS  /tmp/ccRYAMGh.s 			page 25
+ARM GAS  /tmp/ccrivIiY.s 			page 25
 
 
  957              		.section	.bss.host_channel_is_active,"aw",%nobits
@@ -1454,76 +1454,76 @@ ARM GAS  /tmp/ccRYAMGh.s 			page 1
  971              	.Letext0:
  972              		.file 2 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
  973              		.file 3 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
- 974              		.file 4 "../../Drivers/cmsis_device_h7/Include/stm32h743xx.h"
- 975              		.file 5 "../../Drivers/cmsis_device_h7/Include/stm32h7xx.h"
- 976              		.file 6 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_def.h"
- 977              		.file 7 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_rcc.h"
- 978              		.file 8 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_gpio.h"
- 979              		.file 9 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_dma.h"
- 980              		.file 10 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_fdcan.h"
- 981              		.file 11 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_tim.h"
- 982              		.file 12 "../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
- 983              		.file 13 "../../Middlewares/Third_Party/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h"
- 984              		.file 14 "../../Middlewares/Third_Party/FreeRTOS/include/task.h"
- 985              		.file 15 "../../Middlewares/Third_Party/FreeRTOS/include/queue.h"
- 986              		.file 16 "../../Core/Inc/gs_usb.h"
- 987              		.file 17 "../../Core/Inc/usbd_gs_can.h"
- 988              		.file 18 "../../Core/Inc/led.h"
- 989              		.file 19 "../../Core/Inc/can.h"
- 990              		.file 20 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_pwr_ex.h"
- 991              		.file 21 "../../Core/Inc/main.h"
+ 974              		.file 4 "Drivers/cmsis_device_h7/Include/stm32h743xx.h"
+ 975              		.file 5 "Drivers/cmsis_device_h7/Include/stm32h7xx.h"
+ 976              		.file 6 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_def.h"
+ 977              		.file 7 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_rcc.h"
+ 978              		.file 8 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_gpio.h"
+ 979              		.file 9 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_dma.h"
+ 980              		.file 10 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_fdcan.h"
+ 981              		.file 11 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_tim.h"
+ 982              		.file 12 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 983              		.file 13 "Middlewares/Third_Party/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h"
+ 984              		.file 14 "Middlewares/Third_Party/FreeRTOS/include/task.h"
+ 985              		.file 15 "Middlewares/Third_Party/FreeRTOS/include/queue.h"
+ 986              		.file 16 "Core/Inc/gs_usb.h"
+ 987              		.file 17 "Core/Inc/usbd_gs_can.h"
+ 988              		.file 18 "Core/Inc/led.h"
+ 989              		.file 19 "Core/Inc/can.h"
+ 990              		.file 20 "Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_pwr_ex.h"
+ 991              		.file 21 "Core/Inc/main.h"
  992              		.file 22 "<built-in>"
-ARM GAS  /tmp/ccRYAMGh.s 			page 26
+ARM GAS  /tmp/ccrivIiY.s 			page 26
 
 
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 board.c
-     /tmp/ccRYAMGh.s:19     .text.task_my_program:0000000000000000 $t
-     /tmp/ccRYAMGh.s:24     .text.task_my_program:0000000000000000 task_my_program
-     /tmp/ccRYAMGh.s:175    .text.task_my_program:0000000000000090 $d
-     /tmp/ccRYAMGh.s:184    .text.SystemClock_Config:0000000000000000 $t
-     /tmp/ccRYAMGh.s:190    .text.SystemClock_Config:0000000000000000 SystemClock_Config
-     /tmp/ccRYAMGh.s:381    .text.SystemClock_Config:00000000000000c8 $d
-     /tmp/ccRYAMGh.s:387    .text.MX_GPIO_Init:0000000000000000 $t
-     /tmp/ccRYAMGh.s:393    .text.MX_GPIO_Init:0000000000000000 MX_GPIO_Init
-     /tmp/ccRYAMGh.s:558    .text.MX_GPIO_Init:00000000000000d0 $d
-     /tmp/ccRYAMGh.s:566    .text.main_init_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:572    .text.main_init_cb:0000000000000000 main_init_cb
-     /tmp/ccRYAMGh.s:626    .text.main_init_cb:000000000000003c $d
-     /tmp/ccRYAMGh.s:638    .rodata.main_rtos_init_cb.str1.4:0000000000000000 $d
-     /tmp/ccRYAMGh.s:642    .text.main_rtos_init_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:648    .text.main_rtos_init_cb:0000000000000000 main_rtos_init_cb
-     /tmp/ccRYAMGh.s:681    .text.main_rtos_init_cb:0000000000000020 $d
-     /tmp/ccRYAMGh.s:688    .text.main_task_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:694    .text.main_task_cb:0000000000000000 main_task_cb
-     /tmp/ccRYAMGh.s:714    .text.main_task_cb:000000000000000c $d
-     /tmp/ccRYAMGh.s:719    .text.can_on_enable_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:725    .text.can_on_enable_cb:0000000000000000 can_on_enable_cb
-     /tmp/ccRYAMGh.s:755    .text.can_on_enable_cb:0000000000000010 $d
-     /tmp/ccRYAMGh.s:761    .text.can_on_disable_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:767    .text.can_on_disable_cb:0000000000000000 can_on_disable_cb
-     /tmp/ccRYAMGh.s:797    .text.can_on_disable_cb:0000000000000010 $d
-     /tmp/ccRYAMGh.s:803    .text.can_on_tx_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:809    .text.can_on_tx_cb:0000000000000000 can_on_tx_cb
-     /tmp/ccRYAMGh.s:835    .text.can_on_tx_cb:000000000000000c $d
-     /tmp/ccRYAMGh.s:840    .text.can_on_rx_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:846    .text.can_on_rx_cb:0000000000000000 can_on_rx_cb
-     /tmp/ccRYAMGh.s:872    .text.can_on_rx_cb:000000000000000c $d
-     /tmp/ccRYAMGh.s:877    .text.can_identify_cb:0000000000000000 $t
-     /tmp/ccRYAMGh.s:883    .text.can_identify_cb:0000000000000000 can_identify_cb
-     /tmp/ccRYAMGh.s:922    .text.can_identify_cb:0000000000000018 $d
-     /tmp/ccRYAMGh.s:955    .bss.hled1:0000000000000000 hled1
-     /tmp/ccRYAMGh.s:948    .bss.hfdcan2:0000000000000000 hfdcan2
-     /tmp/ccRYAMGh.s:941    .bss.hfdcan1:0000000000000000 hfdcan1
-     /tmp/ccRYAMGh.s:930    .bss.frame_object.0:0000000000000000 $d
-     /tmp/ccRYAMGh.s:934    .bss.frame_object.0:0000000000000000 frame_object.0
-     /tmp/ccRYAMGh.s:937    .bss.hfdcan1:0000000000000000 $d
-     /tmp/ccRYAMGh.s:944    .bss.hfdcan2:0000000000000000 $d
-     /tmp/ccRYAMGh.s:951    .bss.hled1:0000000000000000 $d
-     /tmp/ccRYAMGh.s:961    .bss.host_channel_is_active:0000000000000000 host_channel_is_active
-     /tmp/ccRYAMGh.s:962    .bss.host_channel_is_active:0000000000000000 $d
-     /tmp/ccRYAMGh.s:964    .bss.xCreatedMyProgramTask:0000000000000000 $d
-     /tmp/ccRYAMGh.s:968    .bss.xCreatedMyProgramTask:0000000000000000 xCreatedMyProgramTask
+     /tmp/ccrivIiY.s:19     .text.task_my_program:0000000000000000 $t
+     /tmp/ccrivIiY.s:24     .text.task_my_program:0000000000000000 task_my_program
+     /tmp/ccrivIiY.s:175    .text.task_my_program:0000000000000090 $d
+     /tmp/ccrivIiY.s:184    .text.SystemClock_Config:0000000000000000 $t
+     /tmp/ccrivIiY.s:190    .text.SystemClock_Config:0000000000000000 SystemClock_Config
+     /tmp/ccrivIiY.s:381    .text.SystemClock_Config:00000000000000c8 $d
+     /tmp/ccrivIiY.s:387    .text.MX_GPIO_Init:0000000000000000 $t
+     /tmp/ccrivIiY.s:393    .text.MX_GPIO_Init:0000000000000000 MX_GPIO_Init
+     /tmp/ccrivIiY.s:558    .text.MX_GPIO_Init:00000000000000d0 $d
+     /tmp/ccrivIiY.s:566    .text.main_init_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:572    .text.main_init_cb:0000000000000000 main_init_cb
+     /tmp/ccrivIiY.s:626    .text.main_init_cb:000000000000003c $d
+     /tmp/ccrivIiY.s:638    .rodata.main_rtos_init_cb.str1.4:0000000000000000 $d
+     /tmp/ccrivIiY.s:642    .text.main_rtos_init_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:648    .text.main_rtos_init_cb:0000000000000000 main_rtos_init_cb
+     /tmp/ccrivIiY.s:681    .text.main_rtos_init_cb:0000000000000020 $d
+     /tmp/ccrivIiY.s:688    .text.main_task_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:694    .text.main_task_cb:0000000000000000 main_task_cb
+     /tmp/ccrivIiY.s:714    .text.main_task_cb:000000000000000c $d
+     /tmp/ccrivIiY.s:719    .text.can_on_enable_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:725    .text.can_on_enable_cb:0000000000000000 can_on_enable_cb
+     /tmp/ccrivIiY.s:755    .text.can_on_enable_cb:0000000000000010 $d
+     /tmp/ccrivIiY.s:761    .text.can_on_disable_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:767    .text.can_on_disable_cb:0000000000000000 can_on_disable_cb
+     /tmp/ccrivIiY.s:797    .text.can_on_disable_cb:0000000000000010 $d
+     /tmp/ccrivIiY.s:803    .text.can_on_tx_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:809    .text.can_on_tx_cb:0000000000000000 can_on_tx_cb
+     /tmp/ccrivIiY.s:835    .text.can_on_tx_cb:000000000000000c $d
+     /tmp/ccrivIiY.s:840    .text.can_on_rx_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:846    .text.can_on_rx_cb:0000000000000000 can_on_rx_cb
+     /tmp/ccrivIiY.s:872    .text.can_on_rx_cb:000000000000000c $d
+     /tmp/ccrivIiY.s:877    .text.can_identify_cb:0000000000000000 $t
+     /tmp/ccrivIiY.s:883    .text.can_identify_cb:0000000000000000 can_identify_cb
+     /tmp/ccrivIiY.s:922    .text.can_identify_cb:0000000000000018 $d
+     /tmp/ccrivIiY.s:955    .bss.hled1:0000000000000000 hled1
+     /tmp/ccrivIiY.s:948    .bss.hfdcan2:0000000000000000 hfdcan2
+     /tmp/ccrivIiY.s:941    .bss.hfdcan1:0000000000000000 hfdcan1
+     /tmp/ccrivIiY.s:930    .bss.frame_object.0:0000000000000000 $d
+     /tmp/ccrivIiY.s:934    .bss.frame_object.0:0000000000000000 frame_object.0
+     /tmp/ccrivIiY.s:937    .bss.hfdcan1:0000000000000000 $d
+     /tmp/ccrivIiY.s:944    .bss.hfdcan2:0000000000000000 $d
+     /tmp/ccrivIiY.s:951    .bss.hled1:0000000000000000 $d
+     /tmp/ccrivIiY.s:961    .bss.host_channel_is_active:0000000000000000 host_channel_is_active
+     /tmp/ccrivIiY.s:962    .bss.host_channel_is_active:0000000000000000 $d
+     /tmp/ccrivIiY.s:964    .bss.xCreatedMyProgramTask:0000000000000000 $d
+     /tmp/ccrivIiY.s:968    .bss.xCreatedMyProgramTask:0000000000000000 xCreatedMyProgramTask
 
 UNDEFINED SYMBOLS
 xQueueGenericSend
@@ -1533,7 +1533,7 @@ hGS_CAN
 htim2
 memset
 HAL_PWREx_ConfigSupply
-ARM GAS  /tmp/ccRYAMGh.s 			page 27
+ARM GAS  /tmp/ccrivIiY.s 			page 27
 
 
 HAL_RCC_OscConfig

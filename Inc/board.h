@@ -41,10 +41,10 @@ extern "C" {
 #define USBD_LANGID_STRING			 1033
 #define USBD_MANUFACTURER_STRING	 (uint8_t*) "budgetcan.io"
 #define USBD_PID_FS					 0x606F
-#define USBD_PRODUCT_STRING_FS		 (uint8_t*) "budgetcan_h7"
+#define USBD_PRODUCT_STRING_FS		 (uint8_t*) "ghettocan_h7"
 #define USBD_CONFIGURATION_STRING	 (uint8_t*) "gs_usb"
 #define USBD_INTERFACE_STRING		 (uint8_t*) "gs_usb interface"
-#define DFU_INTERFACE_STRING		 (uint8_t*) "budgetcan_h7 DFU interface"
+#define DFU_INTERFACE_STRING		 (uint8_t*) "ghettocan_h7 DFU interface"
 
 #define FDCAN_SJW_INIT				 1
 #define FDCAN_BRP_INIT				 8
