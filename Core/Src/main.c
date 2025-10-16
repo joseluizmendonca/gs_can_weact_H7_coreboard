@@ -30,6 +30,7 @@
 #include "usbd_gs_can.h"
 #include "can.h"
 #include "lin.h"
+#include "led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -125,7 +126,8 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  // set LED1 off
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
   /* Function to allow the board to init any features */
   main_init_cb();
 
@@ -251,6 +253,7 @@ void task_queue_from_host(void *argument)
 {
   UNUSED(argument);
   struct gs_host_frame_object frame_object;
+  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
   /* Infinite loop */
   for(;;)
