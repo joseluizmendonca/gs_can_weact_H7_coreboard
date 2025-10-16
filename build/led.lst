@@ -1,0 +1,665 @@
+ARM GAS  /tmp/ccZKB8u5.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-d16
+   4              		.eabi_attribute 28, 1
+   5              		.eabi_attribute 20, 1
+   6              		.eabi_attribute 21, 1
+   7              		.eabi_attribute 23, 3
+   8              		.eabi_attribute 24, 1
+   9              		.eabi_attribute 25, 1
+  10              		.eabi_attribute 26, 1
+  11              		.eabi_attribute 30, 1
+  12              		.eabi_attribute 34, 1
+  13              		.eabi_attribute 18, 4
+  14              		.file	"led.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.led_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	led_init
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  25              	led_init:
+  26              	.LVL0:
+  27              	.LFB145:
+  28              		.file 1 "../../Core/Src/led.c"
+   1:../../Core/Src/led.c **** /*
+   2:../../Core/Src/led.c **** 
+   3:../../Core/Src/led.c **** The MIT License (MIT)
+   4:../../Core/Src/led.c **** 
+   5:../../Core/Src/led.c **** Copyright (c) 2022 Ryan Edwards
+   6:../../Core/Src/led.c **** 
+   7:../../Core/Src/led.c **** Permission is hereby granted, free of charge, to any person obtaining a copy
+   8:../../Core/Src/led.c **** of this software and associated documentation files (the "Software"), to deal
+   9:../../Core/Src/led.c **** in the Software without restriction, including without limitation the rights
+  10:../../Core/Src/led.c **** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  11:../../Core/Src/led.c **** copies of the Software, and to permit persons to whom the Software is
+  12:../../Core/Src/led.c **** furnished to do so, subject to the following conditions:
+  13:../../Core/Src/led.c **** 
+  14:../../Core/Src/led.c **** The above copyright notice and this permission notice shall be included in
+  15:../../Core/Src/led.c **** all copies or substantial portions of the Software.
+  16:../../Core/Src/led.c **** 
+  17:../../Core/Src/led.c **** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  18:../../Core/Src/led.c **** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  19:../../Core/Src/led.c **** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  20:../../Core/Src/led.c **** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  21:../../Core/Src/led.c **** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  22:../../Core/Src/led.c **** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  23:../../Core/Src/led.c **** THE SOFTWARE.
+  24:../../Core/Src/led.c **** 
+  25:../../Core/Src/led.c **** */
+  26:../../Core/Src/led.c **** 
+  27:../../Core/Src/led.c **** #include "main.h"
+  28:../../Core/Src/led.c **** #include "board.h"
+  29:../../Core/Src/led.c **** #include "led.h"
+  30:../../Core/Src/led.c **** 
+ARM GAS  /tmp/ccZKB8u5.s 			page 2
+
+
+  31:../../Core/Src/led.c **** /** @brief Function to initialize the LED handle
+  32:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+  33:../../Core/Src/led.c ****  *  @param GPIO_TypeDef *GPIOx - The pointer to the GPIO port.
+  34:../../Core/Src/led.c ****  *  @param uint16_t GPIO_Pin - The pin number.
+  35:../../Core/Src/led.c ****  *  @param led_mode_t led_mode - The desired initial mode.
+  36:../../Core/Src/led.c ****  *  @param uint8_t led_active_level - Define if the LED is active HIGH or LOW.
+  37:../../Core/Src/led.c ****  *  @retval None
+  38:../../Core/Src/led.c ****  */
+  39:../../Core/Src/led.c **** void led_init(LED_HandleTypeDef* hled, GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, led_mode_t led_mode,
+  40:../../Core/Src/led.c **** {
+  29              		.loc 1 40 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 4, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		.loc 1 40 1 is_stmt 0 view .LVU1
+  34 0000 08B5     		push	{r3, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 3, -8
+  38              		.cfi_offset 14, -4
+  39 0002 8446     		mov	ip, r0
+  40 0004 0846     		mov	r0, r1
+  41              	.LVL1:
+  42              		.loc 1 40 1 view .LVU2
+  43 0006 1146     		mov	r1, r2
+  44              	.LVL2:
+  45              		.loc 1 40 1 view .LVU3
+  46 0008 9DF80820 		ldrb	r2, [sp, #8]	@ zero_extendqisi2
+  47              	.LVL3:
+  41:../../Core/Src/led.c **** 	hled->GPIOx = GPIOx;
+  48              		.loc 1 41 2 is_stmt 1 view .LVU4
+  49              		.loc 1 41 14 is_stmt 0 view .LVU5
+  50 000c CCF80000 		str	r0, [ip]
+  42:../../Core/Src/led.c **** 	hled->GPIO_Pin = GPIO_Pin;
+  51              		.loc 1 42 2 is_stmt 1 view .LVU6
+  52              		.loc 1 42 17 is_stmt 0 view .LVU7
+  53 0010 ACF80410 		strh	r1, [ip, #4]	@ movhi
+  43:../../Core/Src/led.c **** 	hled->led_mode = led_mode;
+  54              		.loc 1 43 2 is_stmt 1 view .LVU8
+  55              		.loc 1 43 17 is_stmt 0 view .LVU9
+  56 0014 8CF80730 		strb	r3, [ip, #7]
+  44:../../Core/Src/led.c **** 	hled->prev_led_mode = led_mode;
+  57              		.loc 1 44 2 is_stmt 1 view .LVU10
+  58              		.loc 1 44 22 is_stmt 0 view .LVU11
+  59 0018 8CF80830 		strb	r3, [ip, #8]
+  45:../../Core/Src/led.c **** 	hled->led_active_level = led_active_level;
+  60              		.loc 1 45 2 is_stmt 1 view .LVU12
+  61              		.loc 1 45 25 is_stmt 0 view .LVU13
+  62 001c 8CF80920 		strb	r2, [ip, #9]
+  46:../../Core/Src/led.c **** 	/* start with the LED inactive at init */
+  47:../../Core/Src/led.c **** 	HAL_GPIO_WritePin(hled->GPIOx, hled->GPIO_Pin, !led_active_level);
+  63              		.loc 1 47 2 is_stmt 1 view .LVU14
+  64 0020 B2FA82F2 		clz	r2, r2
+  65 0024 5209     		lsrs	r2, r2, #5
+  66 0026 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  67              	.LVL4:
+  48:../../Core/Src/led.c **** 
+ARM GAS  /tmp/ccZKB8u5.s 			page 3
+
+
+  49:../../Core/Src/led.c **** }
+  68              		.loc 1 49 1 is_stmt 0 view .LVU15
+  69 002a 08BD     		pop	{r3, pc}
+  70              		.loc 1 49 1 view .LVU16
+  71              		.cfi_endproc
+  72              	.LFE145:
+  74              		.section	.text.led_update,"ax",%progbits
+  75              		.align	1
+  76              		.global	led_update
+  77              		.syntax unified
+  78              		.thumb
+  79              		.thumb_func
+  81              	led_update:
+  82              	.LVL5:
+  83              	.LFB146:
+  50:../../Core/Src/led.c **** 
+  51:../../Core/Src/led.c **** /** @brief Function to be called periodically to update the specific handle
+  52:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+  53:../../Core/Src/led.c ****  *  @retval None
+  54:../../Core/Src/led.c ****  */
+  55:../../Core/Src/led.c **** void led_update(LED_HandleTypeDef* hled)
+  56:../../Core/Src/led.c **** {
+  84              		.loc 1 56 1 is_stmt 1 view -0
+  85              		.cfi_startproc
+  86              		@ args = 0, pretend = 0, frame = 0
+  87              		@ frame_needed = 0, uses_anonymous_args = 0
+  88              		.loc 1 56 1 is_stmt 0 view .LVU18
+  89 0000 10B5     		push	{r4, lr}
+  90              	.LCFI1:
+  91              		.cfi_def_cfa_offset 8
+  92              		.cfi_offset 4, -8
+  93              		.cfi_offset 14, -4
+  94 0002 0446     		mov	r4, r0
+  57:../../Core/Src/led.c **** 
+  58:../../Core/Src/led.c **** 	/* check this handle for it's current mode and update the output accordingly */
+  59:../../Core/Src/led.c **** 	switch (hled->led_mode) {
+  95              		.loc 1 59 2 is_stmt 1 view .LVU19
+  96              		.loc 1 59 14 is_stmt 0 view .LVU20
+  97 0004 C379     		ldrb	r3, [r0, #7]	@ zero_extendqisi2
+  98              		.loc 1 59 2 view .LVU21
+  99 0006 042B     		cmp	r3, #4
+ 100 0008 0CD8     		bhi	.L3
+ 101 000a DFE803F0 		tbb	[pc, r3]
+ 102              	.L6:
+ 103 000e 03       		.byte	(.L10-.L6)/2
+ 104 000f 0C       		.byte	(.L9-.L6)/2
+ 105 0010 12       		.byte	(.L8-.L6)/2
+ 106 0011 26       		.byte	(.L7-.L6)/2
+ 107 0012 2F       		.byte	(.L5-.L6)/2
+ 108 0013 00       		.p2align 1
+ 109              	.L10:
+  60:../../Core/Src/led.c **** 		case LED_MODE_INACTIVE:
+  61:../../Core/Src/led.c **** 			HAL_GPIO_WritePin(hled->GPIOx, hled->GPIO_Pin, !hled->led_active_level);
+ 110              		.loc 1 61 4 is_stmt 1 view .LVU22
+ 111              		.loc 1 61 56 is_stmt 0 view .LVU23
+ 112 0014 427A     		ldrb	r2, [r0, #9]	@ zero_extendqisi2
+ 113              		.loc 1 61 4 view .LVU24
+ARM GAS  /tmp/ccZKB8u5.s 			page 4
+
+
+ 114 0016 B2FA82F2 		clz	r2, r2
+ 115 001a 5209     		lsrs	r2, r2, #5
+ 116 001c 8188     		ldrh	r1, [r0, #4]
+ 117 001e 0068     		ldr	r0, [r0]
+ 118              	.LVL6:
+ 119              		.loc 1 61 4 view .LVU25
+ 120 0020 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 121              	.LVL7:
+  62:../../Core/Src/led.c **** 			break;
+ 122              		.loc 1 62 4 is_stmt 1 view .LVU26
+ 123              	.L3:
+  63:../../Core/Src/led.c **** 		case LED_MODE_ACTIVE:
+  64:../../Core/Src/led.c **** 			HAL_GPIO_WritePin(hled->GPIOx, hled->GPIO_Pin, hled->led_active_level);
+  65:../../Core/Src/led.c **** 			break;
+  66:../../Core/Src/led.c **** 		case LED_MODE_RXTX_ACTIVE:
+  67:../../Core/Src/led.c **** 			if ((HAL_GetTick() -  hled->led_rxtx_start_tick) > LED_RXTX_ACTIVE_TIME_MS) {
+  68:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+  69:../../Core/Src/led.c **** 				HAL_GPIO_WritePin(hled->GPIOx, hled->GPIO_Pin, !hled->led_active_level);
+  70:../../Core/Src/led.c **** 				hled->led_mode = LED_MODE_RXTX_HOLDOFF;
+  71:../../Core/Src/led.c **** 				hled->led_rxtx_start_tick = HAL_GetTick();
+  72:../../Core/Src/led.c **** 			}
+  73:../../Core/Src/led.c **** 			break;
+  74:../../Core/Src/led.c **** 		case LED_MODE_RXTX_HOLDOFF:
+  75:../../Core/Src/led.c **** 			/* prevent LED from going solid ON for high traffic */
+  76:../../Core/Src/led.c **** 			if ((HAL_GetTick() - hled->led_rxtx_start_tick) > LED_RXTX_INACTIVE_TIME_MS) {
+  77:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+  78:../../Core/Src/led.c **** 				hled->led_mode = hled->prev_led_mode;
+  79:../../Core/Src/led.c **** 			}
+  80:../../Core/Src/led.c **** 			break;
+  81:../../Core/Src/led.c **** 		case LED_MODE_BLINK:
+  82:../../Core/Src/led.c **** 			if ((HAL_GetTick() - hled->blink_toggle_start_tick) > (hled->blink_period_ms/2)) {
+  83:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+  84:../../Core/Src/led.c **** 				hled->blink_toggle_start_tick = HAL_GetTick();
+  85:../../Core/Src/led.c **** 			}
+  86:../../Core/Src/led.c **** 		default:
+  87:../../Core/Src/led.c **** 			break;
+  88:../../Core/Src/led.c **** 	}
+  89:../../Core/Src/led.c **** }
+ 124              		.loc 1 89 1 is_stmt 0 view .LVU27
+ 125 0024 10BD     		pop	{r4, pc}
+ 126              	.LVL8:
+ 127              	.L9:
+  64:../../Core/Src/led.c **** 			break;
+ 128              		.loc 1 64 4 is_stmt 1 view .LVU28
+ 129 0026 427A     		ldrb	r2, [r0, #9]	@ zero_extendqisi2
+ 130 0028 8188     		ldrh	r1, [r0, #4]
+ 131 002a 0068     		ldr	r0, [r0]
+ 132              	.LVL9:
+  64:../../Core/Src/led.c **** 			break;
+ 133              		.loc 1 64 4 is_stmt 0 view .LVU29
+ 134 002c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 135              	.LVL10:
+  65:../../Core/Src/led.c **** 		case LED_MODE_RXTX_ACTIVE:
+ 136              		.loc 1 65 4 is_stmt 1 view .LVU30
+ 137 0030 F8E7     		b	.L3
+ 138              	.LVL11:
+ 139              	.L8:
+ARM GAS  /tmp/ccZKB8u5.s 			page 5
+
+
+  67:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+ 140              		.loc 1 67 4 view .LVU31
+  67:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+ 141              		.loc 1 67 9 is_stmt 0 view .LVU32
+ 142 0032 FFF7FEFF 		bl	HAL_GetTick
+ 143              	.LVL12:
+  67:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+ 144              		.loc 1 67 30 view .LVU33
+ 145 0036 E368     		ldr	r3, [r4, #12]
+  67:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+ 146              		.loc 1 67 23 view .LVU34
+ 147 0038 C01A     		subs	r0, r0, r3
+  67:../../Core/Src/led.c **** 				/* Turn off LED and change the mode to OFF */
+ 148              		.loc 1 67 7 view .LVU35
+ 149 003a 3228     		cmp	r0, #50
+ 150 003c F2D9     		bls	.L3
+  69:../../Core/Src/led.c **** 				hled->led_mode = LED_MODE_RXTX_HOLDOFF;
+ 151              		.loc 1 69 5 is_stmt 1 view .LVU36
+  69:../../Core/Src/led.c **** 				hled->led_mode = LED_MODE_RXTX_HOLDOFF;
+ 152              		.loc 1 69 57 is_stmt 0 view .LVU37
+ 153 003e 627A     		ldrb	r2, [r4, #9]	@ zero_extendqisi2
+  69:../../Core/Src/led.c **** 				hled->led_mode = LED_MODE_RXTX_HOLDOFF;
+ 154              		.loc 1 69 5 view .LVU38
+ 155 0040 B2FA82F2 		clz	r2, r2
+ 156 0044 5209     		lsrs	r2, r2, #5
+ 157 0046 A188     		ldrh	r1, [r4, #4]
+ 158 0048 2068     		ldr	r0, [r4]
+ 159 004a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 160              	.LVL13:
+  70:../../Core/Src/led.c **** 				hled->led_rxtx_start_tick = HAL_GetTick();
+ 161              		.loc 1 70 5 is_stmt 1 view .LVU39
+  70:../../Core/Src/led.c **** 				hled->led_rxtx_start_tick = HAL_GetTick();
+ 162              		.loc 1 70 20 is_stmt 0 view .LVU40
+ 163 004e 0323     		movs	r3, #3
+ 164 0050 E371     		strb	r3, [r4, #7]
+  71:../../Core/Src/led.c **** 			}
+ 165              		.loc 1 71 5 is_stmt 1 view .LVU41
+  71:../../Core/Src/led.c **** 			}
+ 166              		.loc 1 71 33 is_stmt 0 view .LVU42
+ 167 0052 FFF7FEFF 		bl	HAL_GetTick
+ 168              	.LVL14:
+  71:../../Core/Src/led.c **** 			}
+ 169              		.loc 1 71 31 view .LVU43
+ 170 0056 E060     		str	r0, [r4, #12]
+ 171 0058 E4E7     		b	.L3
+ 172              	.LVL15:
+ 173              	.L7:
+  76:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+ 174              		.loc 1 76 4 is_stmt 1 view .LVU44
+  76:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+ 175              		.loc 1 76 9 is_stmt 0 view .LVU45
+ 176 005a FFF7FEFF 		bl	HAL_GetTick
+ 177              	.LVL16:
+  76:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+ 178              		.loc 1 76 29 view .LVU46
+ 179 005e E368     		ldr	r3, [r4, #12]
+  76:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+ARM GAS  /tmp/ccZKB8u5.s 			page 6
+
+
+ 180              		.loc 1 76 23 view .LVU47
+ 181 0060 C01A     		subs	r0, r0, r3
+  76:../../Core/Src/led.c **** 				/* Return the LED to it's previous state */
+ 182              		.loc 1 76 7 view .LVU48
+ 183 0062 3228     		cmp	r0, #50
+ 184 0064 DED9     		bls	.L3
+  78:../../Core/Src/led.c **** 			}
+ 185              		.loc 1 78 5 is_stmt 1 view .LVU49
+  78:../../Core/Src/led.c **** 			}
+ 186              		.loc 1 78 26 is_stmt 0 view .LVU50
+ 187 0066 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+  78:../../Core/Src/led.c **** 			}
+ 188              		.loc 1 78 20 view .LVU51
+ 189 0068 E371     		strb	r3, [r4, #7]
+ 190 006a DBE7     		b	.L3
+ 191              	.LVL17:
+ 192              	.L5:
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 193              		.loc 1 82 4 is_stmt 1 view .LVU52
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 194              		.loc 1 82 9 is_stmt 0 view .LVU53
+ 195 006c FFF7FEFF 		bl	HAL_GetTick
+ 196              	.LVL18:
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 197              		.loc 1 82 29 view .LVU54
+ 198 0070 6369     		ldr	r3, [r4, #20]
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 199              		.loc 1 82 23 view .LVU55
+ 200 0072 C01A     		subs	r0, r0, r3
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 201              		.loc 1 82 63 view .LVU56
+ 202 0074 2369     		ldr	r3, [r4, #16]
+  82:../../Core/Src/led.c **** 				HAL_GPIO_TogglePin(hled->GPIOx, hled->GPIO_Pin);
+ 203              		.loc 1 82 7 view .LVU57
+ 204 0076 B0EB530F 		cmp	r0, r3, lsr #1
+ 205 007a D3D9     		bls	.L3
+  83:../../Core/Src/led.c **** 				hled->blink_toggle_start_tick = HAL_GetTick();
+ 206              		.loc 1 83 5 is_stmt 1 view .LVU58
+ 207 007c A188     		ldrh	r1, [r4, #4]
+ 208 007e 2068     		ldr	r0, [r4]
+ 209 0080 FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 210              	.LVL19:
+  84:../../Core/Src/led.c **** 			}
+ 211              		.loc 1 84 5 view .LVU59
+  84:../../Core/Src/led.c **** 			}
+ 212              		.loc 1 84 37 is_stmt 0 view .LVU60
+ 213 0084 FFF7FEFF 		bl	HAL_GetTick
+ 214              	.LVL20:
+  84:../../Core/Src/led.c **** 			}
+ 215              		.loc 1 84 35 view .LVU61
+ 216 0088 6061     		str	r0, [r4, #20]
+ 217              		.loc 1 89 1 view .LVU62
+ 218 008a CBE7     		b	.L3
+ 219              		.cfi_endproc
+ 220              	.LFE146:
+ 222              		.section	.text.led_get_mode,"ax",%progbits
+ 223              		.align	1
+ARM GAS  /tmp/ccZKB8u5.s 			page 7
+
+
+ 224              		.global	led_get_mode
+ 225              		.syntax unified
+ 226              		.thumb
+ 227              		.thumb_func
+ 229              	led_get_mode:
+ 230              	.LVL21:
+ 231              	.LFB147:
+  90:../../Core/Src/led.c **** 
+  91:../../Core/Src/led.c **** /** @brief Function to read the LED current mode
+  92:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+  93:../../Core/Src/led.c ****  *  @retval led_mode_t - the enumeratred led mode
+  94:../../Core/Src/led.c ****  */
+  95:../../Core/Src/led.c **** led_mode_t led_get_mode(LED_HandleTypeDef* hled)
+  96:../../Core/Src/led.c **** {
+ 232              		.loc 1 96 1 is_stmt 1 view -0
+ 233              		.cfi_startproc
+ 234              		@ args = 0, pretend = 0, frame = 0
+ 235              		@ frame_needed = 0, uses_anonymous_args = 0
+ 236              		@ link register save eliminated.
+  97:../../Core/Src/led.c **** 	return hled->led_mode;
+ 237              		.loc 1 97 2 view .LVU64
+  98:../../Core/Src/led.c **** }
+ 238              		.loc 1 98 1 is_stmt 0 view .LVU65
+ 239 0000 C079     		ldrb	r0, [r0, #7]	@ zero_extendqisi2
+ 240              	.LVL22:
+ 241              		.loc 1 98 1 view .LVU66
+ 242 0002 7047     		bx	lr
+ 243              		.cfi_endproc
+ 244              	.LFE147:
+ 246              		.section	.text.led_set_active,"ax",%progbits
+ 247              		.align	1
+ 248              		.global	led_set_active
+ 249              		.syntax unified
+ 250              		.thumb
+ 251              		.thumb_func
+ 253              	led_set_active:
+ 254              	.LVL23:
+ 255              	.LFB148:
+  99:../../Core/Src/led.c **** 
+ 100:../../Core/Src/led.c **** /** @brief Function to set the LED into it's active mode
+ 101:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+ 102:../../Core/Src/led.c ****  *  @retval None
+ 103:../../Core/Src/led.c ****  */
+ 104:../../Core/Src/led.c **** void led_set_active(LED_HandleTypeDef* hled)
+ 105:../../Core/Src/led.c **** {
+ 256              		.loc 1 105 1 is_stmt 1 view -0
+ 257              		.cfi_startproc
+ 258              		@ args = 0, pretend = 0, frame = 0
+ 259              		@ frame_needed = 0, uses_anonymous_args = 0
+ 260              		@ link register save eliminated.
+ 106:../../Core/Src/led.c **** 	/* set the mode flag - the handler will update the GPIO */
+ 107:../../Core/Src/led.c **** 	hled->prev_led_mode = LED_MODE_ACTIVE;
+ 261              		.loc 1 107 2 view .LVU68
+ 262              		.loc 1 107 22 is_stmt 0 view .LVU69
+ 263 0000 0123     		movs	r3, #1
+ 264 0002 0372     		strb	r3, [r0, #8]
+ 108:../../Core/Src/led.c **** 	hled->led_mode = LED_MODE_ACTIVE;
+ARM GAS  /tmp/ccZKB8u5.s 			page 8
+
+
+ 265              		.loc 1 108 2 is_stmt 1 view .LVU70
+ 266              		.loc 1 108 17 is_stmt 0 view .LVU71
+ 267 0004 C371     		strb	r3, [r0, #7]
+ 109:../../Core/Src/led.c **** }
+ 268              		.loc 1 109 1 view .LVU72
+ 269 0006 7047     		bx	lr
+ 270              		.cfi_endproc
+ 271              	.LFE148:
+ 273              		.section	.text.led_set_inactive,"ax",%progbits
+ 274              		.align	1
+ 275              		.global	led_set_inactive
+ 276              		.syntax unified
+ 277              		.thumb
+ 278              		.thumb_func
+ 280              	led_set_inactive:
+ 281              	.LVL24:
+ 282              	.LFB149:
+ 110:../../Core/Src/led.c **** 
+ 111:../../Core/Src/led.c **** /** @brief Function to set the LED into it's inactive mode
+ 112:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+ 113:../../Core/Src/led.c ****  *  @retval None
+ 114:../../Core/Src/led.c ****  */
+ 115:../../Core/Src/led.c **** void led_set_inactive(LED_HandleTypeDef* hled)
+ 116:../../Core/Src/led.c **** {
+ 283              		.loc 1 116 1 is_stmt 1 view -0
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287              		@ link register save eliminated.
+ 117:../../Core/Src/led.c **** 	/* set the mode flag - the handler will update the GPIO */
+ 118:../../Core/Src/led.c **** 	hled->prev_led_mode = LED_MODE_INACTIVE;
+ 288              		.loc 1 118 2 view .LVU74
+ 289              		.loc 1 118 22 is_stmt 0 view .LVU75
+ 290 0000 0023     		movs	r3, #0
+ 291 0002 0372     		strb	r3, [r0, #8]
+ 119:../../Core/Src/led.c **** 	hled->led_mode = LED_MODE_INACTIVE;
+ 292              		.loc 1 119 2 is_stmt 1 view .LVU76
+ 293              		.loc 1 119 17 is_stmt 0 view .LVU77
+ 294 0004 C371     		strb	r3, [r0, #7]
+ 120:../../Core/Src/led.c **** }
+ 295              		.loc 1 120 1 view .LVU78
+ 296 0006 7047     		bx	lr
+ 297              		.cfi_endproc
+ 298              	.LFE149:
+ 300              		.section	.text.led_indicate_rxtx,"ax",%progbits
+ 301              		.align	1
+ 302              		.global	led_indicate_rxtx
+ 303              		.syntax unified
+ 304              		.thumb
+ 305              		.thumb_func
+ 307              	led_indicate_rxtx:
+ 308              	.LVL25:
+ 309              	.LFB150:
+ 121:../../Core/Src/led.c **** 
+ 122:../../Core/Src/led.c **** /** @brief Function to indicate to the LED handler that an RX or TX event took place to pulse the o
+ 123:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+ 124:../../Core/Src/led.c ****  *  @retval None
+ARM GAS  /tmp/ccZKB8u5.s 			page 9
+
+
+ 125:../../Core/Src/led.c ****  */
+ 126:../../Core/Src/led.c **** void led_indicate_rxtx(LED_HandleTypeDef* hled)
+ 127:../../Core/Src/led.c **** {
+ 310              		.loc 1 127 1 is_stmt 1 view -0
+ 311              		.cfi_startproc
+ 312              		@ args = 0, pretend = 0, frame = 0
+ 313              		@ frame_needed = 0, uses_anonymous_args = 0
+ 128:../../Core/Src/led.c **** 	/* check to see if we have already started to indicate an RXTX to prevent steady state LED on high
+ 129:../../Core/Src/led.c **** 	if ((hled->led_mode != LED_MODE_RXTX_ACTIVE)  && (hled->led_mode != LED_MODE_RXTX_HOLDOFF)) {
+ 314              		.loc 1 129 2 view .LVU80
+ 315              		.loc 1 129 11 is_stmt 0 view .LVU81
+ 316 0000 C379     		ldrb	r3, [r0, #7]	@ zero_extendqisi2
+ 317              		.loc 1 129 48 view .LVU82
+ 318 0002 023B     		subs	r3, r3, #2
+ 319 0004 DBB2     		uxtb	r3, r3
+ 320              		.loc 1 129 5 view .LVU83
+ 321 0006 012B     		cmp	r3, #1
+ 322 0008 00D8     		bhi	.L21
+ 323 000a 7047     		bx	lr
+ 324              	.L21:
+ 127:../../Core/Src/led.c **** 	/* check to see if we have already started to indicate an RXTX to prevent steady state LED on high
+ 325              		.loc 1 127 1 view .LVU84
+ 326 000c 10B5     		push	{r4, lr}
+ 327              	.LCFI2:
+ 328              		.cfi_def_cfa_offset 8
+ 329              		.cfi_offset 4, -8
+ 330              		.cfi_offset 14, -4
+ 331 000e 0446     		mov	r4, r0
+ 130:../../Core/Src/led.c **** 		/* turn on the LED for a brief period of time to indicate a message was sent */
+ 131:../../Core/Src/led.c **** 		HAL_GPIO_WritePin(hled->GPIOx, hled->GPIO_Pin, hled->led_active_level);
+ 332              		.loc 1 131 3 is_stmt 1 view .LVU85
+ 333 0010 427A     		ldrb	r2, [r0, #9]	@ zero_extendqisi2
+ 334 0012 8188     		ldrh	r1, [r0, #4]
+ 335 0014 0068     		ldr	r0, [r0]
+ 336              	.LVL26:
+ 337              		.loc 1 131 3 is_stmt 0 view .LVU86
+ 338 0016 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 339              	.LVL27:
+ 132:../../Core/Src/led.c **** 		hled->led_mode = LED_MODE_RXTX_ACTIVE;
+ 340              		.loc 1 132 3 is_stmt 1 view .LVU87
+ 341              		.loc 1 132 18 is_stmt 0 view .LVU88
+ 342 001a 0223     		movs	r3, #2
+ 343 001c E371     		strb	r3, [r4, #7]
+ 133:../../Core/Src/led.c **** 		hled->led_rxtx_start_tick = HAL_GetTick();
+ 344              		.loc 1 133 3 is_stmt 1 view .LVU89
+ 345              		.loc 1 133 31 is_stmt 0 view .LVU90
+ 346 001e FFF7FEFF 		bl	HAL_GetTick
+ 347              	.LVL28:
+ 348              		.loc 1 133 29 view .LVU91
+ 349 0022 E060     		str	r0, [r4, #12]
+ 134:../../Core/Src/led.c **** 	}
+ 135:../../Core/Src/led.c **** }
+ 350              		.loc 1 135 1 view .LVU92
+ 351 0024 10BD     		pop	{r4, pc}
+ 352              		.loc 1 135 1 view .LVU93
+ 353              		.cfi_endproc
+ 354              	.LFE150:
+ARM GAS  /tmp/ccZKB8u5.s 			page 10
+
+
+ 356              		.section	.text.led_blink_start,"ax",%progbits
+ 357              		.align	1
+ 358              		.global	led_blink_start
+ 359              		.syntax unified
+ 360              		.thumb
+ 361              		.thumb_func
+ 363              	led_blink_start:
+ 364              	.LVL29:
+ 365              	.LFB151:
+ 136:../../Core/Src/led.c **** 
+ 137:../../Core/Src/led.c **** /** @brief Function to initiate a blink pattern on the LED
+ 138:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+ 139:../../Core/Src/led.c ****  *  @param uint32_t period_ms - The period in ms that the LED should blink.
+ 140:../../Core/Src/led.c ****  *  @retval None
+ 141:../../Core/Src/led.c ****  */
+ 142:../../Core/Src/led.c **** void led_blink_start(LED_HandleTypeDef* hled, uint32_t period_ms)
+ 143:../../Core/Src/led.c **** {
+ 366              		.loc 1 143 1 is_stmt 1 view -0
+ 367              		.cfi_startproc
+ 368              		@ args = 0, pretend = 0, frame = 0
+ 369              		@ frame_needed = 0, uses_anonymous_args = 0
+ 370              		.loc 1 143 1 is_stmt 0 view .LVU95
+ 371 0000 10B5     		push	{r4, lr}
+ 372              	.LCFI3:
+ 373              		.cfi_def_cfa_offset 8
+ 374              		.cfi_offset 4, -8
+ 375              		.cfi_offset 14, -4
+ 376 0002 0446     		mov	r4, r0
+ 144:../../Core/Src/led.c **** 	hled->blink_period_ms = period_ms;
+ 377              		.loc 1 144 2 is_stmt 1 view .LVU96
+ 378              		.loc 1 144 24 is_stmt 0 view .LVU97
+ 379 0004 0161     		str	r1, [r0, #16]
+ 145:../../Core/Src/led.c **** 	hled->led_mode = LED_MODE_BLINK;
+ 380              		.loc 1 145 2 is_stmt 1 view .LVU98
+ 381              		.loc 1 145 17 is_stmt 0 view .LVU99
+ 382 0006 0423     		movs	r3, #4
+ 383 0008 C371     		strb	r3, [r0, #7]
+ 146:../../Core/Src/led.c **** 	hled->blink_toggle_start_tick = HAL_GetTick();
+ 384              		.loc 1 146 2 is_stmt 1 view .LVU100
+ 385              		.loc 1 146 34 is_stmt 0 view .LVU101
+ 386 000a FFF7FEFF 		bl	HAL_GetTick
+ 387              	.LVL30:
+ 388              		.loc 1 146 32 view .LVU102
+ 389 000e 6061     		str	r0, [r4, #20]
+ 147:../../Core/Src/led.c **** }
+ 390              		.loc 1 147 1 view .LVU103
+ 391 0010 10BD     		pop	{r4, pc}
+ 392              		.loc 1 147 1 view .LVU104
+ 393              		.cfi_endproc
+ 394              	.LFE151:
+ 396              		.section	.text.led_blink_stop,"ax",%progbits
+ 397              		.align	1
+ 398              		.global	led_blink_stop
+ 399              		.syntax unified
+ 400              		.thumb
+ 401              		.thumb_func
+ 403              	led_blink_stop:
+ARM GAS  /tmp/ccZKB8u5.s 			page 11
+
+
+ 404              	.LVL31:
+ 405              	.LFB152:
+ 148:../../Core/Src/led.c **** 
+ 149:../../Core/Src/led.c **** /** @brief Function to stop a blink pattern on the LED
+ 150:../../Core/Src/led.c ****  *  @param LED_HandleTypeDef* hled - The pointer to the handle.
+ 151:../../Core/Src/led.c ****  *  @retval None
+ 152:../../Core/Src/led.c ****  */
+ 153:../../Core/Src/led.c **** void led_blink_stop(LED_HandleTypeDef* hled)
+ 154:../../Core/Src/led.c **** {
+ 406              		.loc 1 154 1 is_stmt 1 view -0
+ 407              		.cfi_startproc
+ 408              		@ args = 0, pretend = 0, frame = 0
+ 409              		@ frame_needed = 0, uses_anonymous_args = 0
+ 410              		@ link register save eliminated.
+ 155:../../Core/Src/led.c **** 	hled->led_mode = hled->prev_led_mode;
+ 411              		.loc 1 155 2 view .LVU106
+ 412              		.loc 1 155 23 is_stmt 0 view .LVU107
+ 413 0000 037A     		ldrb	r3, [r0, #8]	@ zero_extendqisi2
+ 414              		.loc 1 155 17 view .LVU108
+ 415 0002 C371     		strb	r3, [r0, #7]
+ 156:../../Core/Src/led.c **** }
+ 416              		.loc 1 156 1 view .LVU109
+ 417 0004 7047     		bx	lr
+ 418              		.cfi_endproc
+ 419              	.LFE152:
+ 421              		.text
+ 422              	.Letext0:
+ 423              		.file 2 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
+ 424              		.file 3 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
+ 425              		.file 4 "../../Drivers/cmsis_device_h7/Include/stm32h743xx.h"
+ 426              		.file 5 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_gpio.h"
+ 427              		.file 6 "../../Core/Inc/led.h"
+ 428              		.file 7 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal.h"
+ARM GAS  /tmp/ccZKB8u5.s 			page 12
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 led.c
+     /tmp/ccZKB8u5.s:19     .text.led_init:0000000000000000 $t
+     /tmp/ccZKB8u5.s:25     .text.led_init:0000000000000000 led_init
+     /tmp/ccZKB8u5.s:75     .text.led_update:0000000000000000 $t
+     /tmp/ccZKB8u5.s:81     .text.led_update:0000000000000000 led_update
+     /tmp/ccZKB8u5.s:103    .text.led_update:000000000000000e $d
+     /tmp/ccZKB8u5.s:223    .text.led_get_mode:0000000000000000 $t
+     /tmp/ccZKB8u5.s:229    .text.led_get_mode:0000000000000000 led_get_mode
+     /tmp/ccZKB8u5.s:247    .text.led_set_active:0000000000000000 $t
+     /tmp/ccZKB8u5.s:253    .text.led_set_active:0000000000000000 led_set_active
+     /tmp/ccZKB8u5.s:274    .text.led_set_inactive:0000000000000000 $t
+     /tmp/ccZKB8u5.s:280    .text.led_set_inactive:0000000000000000 led_set_inactive
+     /tmp/ccZKB8u5.s:301    .text.led_indicate_rxtx:0000000000000000 $t
+     /tmp/ccZKB8u5.s:307    .text.led_indicate_rxtx:0000000000000000 led_indicate_rxtx
+     /tmp/ccZKB8u5.s:357    .text.led_blink_start:0000000000000000 $t
+     /tmp/ccZKB8u5.s:363    .text.led_blink_start:0000000000000000 led_blink_start
+     /tmp/ccZKB8u5.s:397    .text.led_blink_stop:0000000000000000 $t
+     /tmp/ccZKB8u5.s:403    .text.led_blink_stop:0000000000000000 led_blink_stop
+     /tmp/ccZKB8u5.s:108    .text.led_update:0000000000000013 $d
+     /tmp/ccZKB8u5.s:108    .text.led_update:0000000000000014 $t
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+HAL_GetTick
+HAL_GPIO_TogglePin

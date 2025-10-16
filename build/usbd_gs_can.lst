@@ -1,0 +1,2848 @@
+ARM GAS  /tmp/ccqiwJRX.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-d16
+   4              		.eabi_attribute 28, 1
+   5              		.eabi_attribute 20, 1
+   6              		.eabi_attribute 21, 1
+   7              		.eabi_attribute 23, 3
+   8              		.eabi_attribute 24, 1
+   9              		.eabi_attribute 25, 1
+  10              		.eabi_attribute 26, 1
+  11              		.eabi_attribute 30, 1
+  12              		.eabi_attribute 34, 1
+  13              		.eabi_attribute 18, 4
+  14              		.file	"usbd_gs_can.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.USBD_GS_CAN_DataIn,"ax",%progbits
+  19              		.align	1
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	USBD_GS_CAN_DataIn:
+  25              	.LVL0:
+  26              	.LFB158:
+  27              		.file 1 "../../Core/Src/usbd_gs_can.c"
+   1:../../Core/Src/usbd_gs_can.c **** /*
+   2:../../Core/Src/usbd_gs_can.c **** 
+   3:../../Core/Src/usbd_gs_can.c **** The MIT License (MIT)
+   4:../../Core/Src/usbd_gs_can.c **** 
+   5:../../Core/Src/usbd_gs_can.c **** Copyright (c) 2016 Hubert Denkmair
+   6:../../Core/Src/usbd_gs_can.c **** Copyright (c) 2022 Ryan Edwards (changes for STM32G0/G4 and CAN-FD)
+   7:../../Core/Src/usbd_gs_can.c **** 
+   8:../../Core/Src/usbd_gs_can.c **** Permission is hereby granted, free of charge, to any person obtaining a copy
+   9:../../Core/Src/usbd_gs_can.c **** of this software and associated documentation files (the "Software"), to deal
+  10:../../Core/Src/usbd_gs_can.c **** in the Software without restriction, including without limitation the rights
+  11:../../Core/Src/usbd_gs_can.c **** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  12:../../Core/Src/usbd_gs_can.c **** copies of the Software, and to permit persons to whom the Software is
+  13:../../Core/Src/usbd_gs_can.c **** furnished to do so, subject to the following conditions:
+  14:../../Core/Src/usbd_gs_can.c **** 
+  15:../../Core/Src/usbd_gs_can.c **** The above copyright notice and this permission notice shall be included in
+  16:../../Core/Src/usbd_gs_can.c **** all copies or substantial portions of the Software.
+  17:../../Core/Src/usbd_gs_can.c **** 
+  18:../../Core/Src/usbd_gs_can.c **** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  19:../../Core/Src/usbd_gs_can.c **** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  20:../../Core/Src/usbd_gs_can.c **** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  21:../../Core/Src/usbd_gs_can.c **** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  22:../../Core/Src/usbd_gs_can.c **** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  23:../../Core/Src/usbd_gs_can.c **** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  24:../../Core/Src/usbd_gs_can.c **** THE SOFTWARE.
+  25:../../Core/Src/usbd_gs_can.c **** 
+  26:../../Core/Src/usbd_gs_can.c **** */
+  27:../../Core/Src/usbd_gs_can.c **** 
+  28:../../Core/Src/usbd_gs_can.c **** #include <stdlib.h>
+  29:../../Core/Src/usbd_gs_can.c **** #include <string.h>
+  30:../../Core/Src/usbd_gs_can.c **** #include "usbd_desc.h"
+  31:../../Core/Src/usbd_gs_can.c **** #include "usbd_ctlreq.h"
+ARM GAS  /tmp/ccqiwJRX.s 			page 2
+
+
+  32:../../Core/Src/usbd_gs_can.c **** #include "usbd_ioreq.h"
+  33:../../Core/Src/usbd_gs_can.c **** #include "usbd_gs_can.h"
+  34:../../Core/Src/usbd_gs_can.c **** #include "main.h"
+  35:../../Core/Src/usbd_gs_can.c **** #include "FreeRTOS.h"
+  36:../../Core/Src/usbd_gs_can.c **** #include "queue.h"
+  37:../../Core/Src/usbd_gs_can.c **** #include "gs_usb.h"
+  38:../../Core/Src/usbd_gs_can.c **** #include "can.h"
+  39:../../Core/Src/usbd_gs_can.c **** 
+  40:../../Core/Src/usbd_gs_can.c **** extern TIM_HandleTypeDef htim2;
+  41:../../Core/Src/usbd_gs_can.c **** extern uint8_t USBD_StrDesc[USBD_MAX_STR_DESC_SIZ];
+  42:../../Core/Src/usbd_gs_can.c **** extern USBD_GS_CAN_HandleTypeDef hGS_CAN;
+  43:../../Core/Src/usbd_gs_can.c **** 
+  44:../../Core/Src/usbd_gs_can.c **** /* Configuration Descriptor */
+  45:../../Core/Src/usbd_gs_can.c **** static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
+  46:../../Core/Src/usbd_gs_can.c **** {
+  47:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  48:../../Core/Src/usbd_gs_can.c **** 	/* Configuration Descriptor */
+  49:../../Core/Src/usbd_gs_can.c **** 	0x09,                           /* bLength */
+  50:../../Core/Src/usbd_gs_can.c **** 	USB_DESC_TYPE_CONFIGURATION,    /* bDescriptorType */
+  51:../../Core/Src/usbd_gs_can.c **** 	USB_CAN_CONFIG_DESC_SIZ,        /* wTotalLength */
+  52:../../Core/Src/usbd_gs_can.c **** 	0x00,
+  53:../../Core/Src/usbd_gs_can.c **** 	0x02,                           /* bNumInterfaces */
+  54:../../Core/Src/usbd_gs_can.c **** 	0x01,                           /* bConfigurationValue */
+  55:../../Core/Src/usbd_gs_can.c **** 	USBD_IDX_CONFIG_STR,            /* iConfiguration */
+  56:../../Core/Src/usbd_gs_can.c **** 	0x80,                           /* bmAttributes */
+  57:../../Core/Src/usbd_gs_can.c **** 	0x4B,                           /* MaxPower 150 mA */
+  58:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  59:../../Core/Src/usbd_gs_can.c **** 
+  60:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  61:../../Core/Src/usbd_gs_can.c **** 	/* GS_USB Interface Descriptor */
+  62:../../Core/Src/usbd_gs_can.c **** 	0x09,                           /* bLength */
+  63:../../Core/Src/usbd_gs_can.c **** 	USB_DESC_TYPE_INTERFACE,        /* bDescriptorType */
+  64:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bInterfaceNumber */
+  65:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bAlternateSetting */
+  66:../../Core/Src/usbd_gs_can.c **** 	0x02,                           /* bNumEndpoints */
+  67:../../Core/Src/usbd_gs_can.c **** 	0xFF,                           /* bInterfaceClass: Vendor Specific*/
+  68:../../Core/Src/usbd_gs_can.c **** 	0xFF,                           /* bInterfaceSubClass: Vendor Specific */
+  69:../../Core/Src/usbd_gs_can.c **** 	0xFF,                           /* bInterfaceProtocol: Vendor Specific */
+  70:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* iInterface */
+  71:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  72:../../Core/Src/usbd_gs_can.c **** 
+  73:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  74:../../Core/Src/usbd_gs_can.c **** 	/* EP1 descriptor */
+  75:../../Core/Src/usbd_gs_can.c **** 	0x07,                           /* bLength */
+  76:../../Core/Src/usbd_gs_can.c **** 	USB_DESC_TYPE_ENDPOINT,         /* bDescriptorType */
+  77:../../Core/Src/usbd_gs_can.c **** 	GSUSB_ENDPOINT_IN,              /* bEndpointAddress */
+  78:../../Core/Src/usbd_gs_can.c **** 	0x02,                           /* bmAttributes: bulk */
+  79:../../Core/Src/usbd_gs_can.c **** 	LOBYTE(CAN_DATA_MAX_PACKET_SIZE), /* wMaxPacketSize */
+  80:../../Core/Src/usbd_gs_can.c **** 	HIBYTE(CAN_DATA_MAX_PACKET_SIZE),
+  81:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bInterval: */
+  82:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  83:../../Core/Src/usbd_gs_can.c **** 
+  84:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  85:../../Core/Src/usbd_gs_can.c **** 	/* EP2 descriptor */
+  86:../../Core/Src/usbd_gs_can.c **** 	0x07,                           /* bLength */
+  87:../../Core/Src/usbd_gs_can.c **** 	USB_DESC_TYPE_ENDPOINT,         /* bDescriptorType */
+  88:../../Core/Src/usbd_gs_can.c **** 	GSUSB_ENDPOINT_OUT,             /* bEndpointAddress */
+ARM GAS  /tmp/ccqiwJRX.s 			page 3
+
+
+  89:../../Core/Src/usbd_gs_can.c **** 	0x02,                           /* bmAttributes: bulk */
+  90:../../Core/Src/usbd_gs_can.c **** 	LOBYTE(CAN_DATA_MAX_PACKET_SIZE), /* wMaxPacketSize */
+  91:../../Core/Src/usbd_gs_can.c **** 	HIBYTE(CAN_DATA_MAX_PACKET_SIZE),
+  92:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bInterval: */
+  93:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  94:../../Core/Src/usbd_gs_can.c **** 
+  95:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  96:../../Core/Src/usbd_gs_can.c **** 	/* DFU Interface Descriptor */
+  97:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+  98:../../Core/Src/usbd_gs_can.c **** 	0x09,                           /* bLength */
+  99:../../Core/Src/usbd_gs_can.c **** 	USB_DESC_TYPE_INTERFACE,        /* bDescriptorType */
+ 100:../../Core/Src/usbd_gs_can.c **** 	DFU_INTERFACE_NUM,              /* bInterfaceNumber */
+ 101:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bAlternateSetting */
+ 102:../../Core/Src/usbd_gs_can.c **** 	0x00,                           /* bNumEndpoints */
+ 103:../../Core/Src/usbd_gs_can.c **** 	0xFE,                           /* bInterfaceClass: Vendor Specific*/
+ 104:../../Core/Src/usbd_gs_can.c **** 	0x01,                           /* bInterfaceSubClass */
+ 105:../../Core/Src/usbd_gs_can.c **** 	0x01,                           /* bInterfaceProtocol : Runtime mode */
+ 106:../../Core/Src/usbd_gs_can.c **** 	DFU_INTERFACE_STR_INDEX,        /* iInterface */
+ 107:../../Core/Src/usbd_gs_can.c **** 
+ 108:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+ 109:../../Core/Src/usbd_gs_can.c **** 	/* Run-Time DFU Functional Descriptor */
+ 110:../../Core/Src/usbd_gs_can.c **** 	/*---------------------------------------------------------------------------*/
+ 111:../../Core/Src/usbd_gs_can.c **** 	0x09,                           /* bLength */
+ 112:../../Core/Src/usbd_gs_can.c **** 	0x21,                           /* bDescriptorType: DFU FUNCTIONAL */
+ 113:../../Core/Src/usbd_gs_can.c **** 	0x0B,                           /* bmAttributes: detach, upload, download */
+ 114:../../Core/Src/usbd_gs_can.c **** 	0xFF, 0x00,                     /* wDetachTimeOut */
+ 115:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x08,                     /* wTransferSize */
+ 116:../../Core/Src/usbd_gs_can.c **** 	0x1a, 0x01,                     /* bcdDFUVersion: 1.1a */
+ 117:../../Core/Src/usbd_gs_can.c **** 
+ 118:../../Core/Src/usbd_gs_can.c **** };
+ 119:../../Core/Src/usbd_gs_can.c **** 
+ 120:../../Core/Src/usbd_gs_can.c **** /* Microsoft OS String Descriptor */
+ 121:../../Core/Src/usbd_gs_can.c **** static const uint8_t USBD_GS_CAN_WINUSB_STR[] =
+ 122:../../Core/Src/usbd_gs_can.c **** {
+ 123:../../Core/Src/usbd_gs_can.c **** 	0x12,                  /* length */
+ 124:../../Core/Src/usbd_gs_can.c **** 	0x03,                  /* descriptor type == string */
+ 125:../../Core/Src/usbd_gs_can.c **** 	0x4D, 0x00, 0x53, 0x00, /* signature: "MSFT100" */
+ 126:../../Core/Src/usbd_gs_can.c **** 	0x46, 0x00, 0x54, 0x00,
+ 127:../../Core/Src/usbd_gs_can.c **** 	0x31, 0x00, 0x30, 0x00,
+ 128:../../Core/Src/usbd_gs_can.c **** 	0x30, 0x00,
+ 129:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_VENDOR_CODE, /* vendor code */
+ 130:../../Core/Src/usbd_gs_can.c **** 	0x00                   /* padding */
+ 131:../../Core/Src/usbd_gs_can.c **** };
+ 132:../../Core/Src/usbd_gs_can.c **** 
+ 133:../../Core/Src/usbd_gs_can.c **** /*  Microsoft Compatible ID Feature Descriptor  */
+ 134:../../Core/Src/usbd_gs_can.c **** static const uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] = {
+ 135:../../Core/Src/usbd_gs_can.c **** 	0x40, 0x00, 0x00, 0x00, /* length */
+ 136:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x01,           /* version 1.0 */
+ 137:../../Core/Src/usbd_gs_can.c **** 	0x04, 0x00,           /* descr index (0x0004) */
+ 138:../../Core/Src/usbd_gs_can.c **** 	0x02,                 /* number of sections */
+ 139:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00, /* reserved */
+ 140:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00,
+ 141:../../Core/Src/usbd_gs_can.c **** 	0x00,                 /* interface number */
+ 142:../../Core/Src/usbd_gs_can.c **** 	0x01,                 /* reserved */
+ 143:../../Core/Src/usbd_gs_can.c **** 	0x57, 0x49, 0x4E, 0x55, /* compatible ID ("WINUSB\0\0") */
+ 144:../../Core/Src/usbd_gs_can.c **** 	0x53, 0x42, 0x00, 0x00,
+ 145:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00, /* sub-compatible ID */
+ARM GAS  /tmp/ccqiwJRX.s 			page 4
+
+
+ 146:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00,
+ 147:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00, /* reserved */
+ 148:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00,
+ 149:../../Core/Src/usbd_gs_can.c **** 	0x01,                 /* interface number */
+ 150:../../Core/Src/usbd_gs_can.c **** 	0x01,                 /* reserved */
+ 151:../../Core/Src/usbd_gs_can.c **** 	0x57, 0x49, 0x4E, 0x55, /* compatible ID ("WINUSB\0\0") */
+ 152:../../Core/Src/usbd_gs_can.c **** 	0x53, 0x42, 0x00, 0x00,
+ 153:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00, /* sub-compatible ID */
+ 154:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00,
+ 155:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00, /* reserved */
+ 156:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00
+ 157:../../Core/Src/usbd_gs_can.c **** };
+ 158:../../Core/Src/usbd_gs_can.c **** 
+ 159:../../Core/Src/usbd_gs_can.c **** /* Microsoft Extended Properties Feature Descriptor */
+ 160:../../Core/Src/usbd_gs_can.c **** static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
+ 161:../../Core/Src/usbd_gs_can.c **** 	0x92, 0x00, 0x00, 0x00, /* length */
+ 162:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x01,      /* version 1.0 */
+ 163:../../Core/Src/usbd_gs_can.c **** 	0x05, 0x00,           /* descr index (0x0005) */
+ 164:../../Core/Src/usbd_gs_can.c **** 	0x01, 0x00,           /* number of sections */
+ 165:../../Core/Src/usbd_gs_can.c **** 	0x88, 0x00, 0x00, 0x00, /* property section size */
+ 166:../../Core/Src/usbd_gs_can.c **** 	0x07, 0x00, 0x00, 0x00, /* property data type 7: Unicode REG_MULTI_SZ */
+ 167:../../Core/Src/usbd_gs_can.c **** 	0x2a, 0x00,      /* property name length */
+ 168:../../Core/Src/usbd_gs_can.c **** 
+ 169:../../Core/Src/usbd_gs_can.c **** 	0x44, 0x00, 0x65, 0x00, /* property name "DeviceInterfaceGUIDs" */
+ 170:../../Core/Src/usbd_gs_can.c **** 	0x76, 0x00, 0x69, 0x00,
+ 171:../../Core/Src/usbd_gs_can.c **** 	0x63, 0x00, 0x65, 0x00,
+ 172:../../Core/Src/usbd_gs_can.c **** 	0x49, 0x00, 0x6e, 0x00,
+ 173:../../Core/Src/usbd_gs_can.c **** 	0x74, 0x00, 0x65, 0x00,
+ 174:../../Core/Src/usbd_gs_can.c **** 	0x72, 0x00, 0x66, 0x00,
+ 175:../../Core/Src/usbd_gs_can.c **** 	0x61, 0x00, 0x63, 0x00,
+ 176:../../Core/Src/usbd_gs_can.c **** 	0x65, 0x00, 0x47, 0x00,
+ 177:../../Core/Src/usbd_gs_can.c **** 	0x55, 0x00, 0x49, 0x00,
+ 178:../../Core/Src/usbd_gs_can.c **** 	0x44, 0x00, 0x73, 0x00,
+ 179:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00,
+ 180:../../Core/Src/usbd_gs_can.c **** 
+ 181:../../Core/Src/usbd_gs_can.c **** 	0x50, 0x00, 0x00, 0x00, /* property data length */
+ 182:../../Core/Src/usbd_gs_can.c **** 
+ 183:../../Core/Src/usbd_gs_can.c **** 	0x7b, 0x00, 0x63, 0x00, /* property name: "{c15b4308-04d3-11e6-b3ea-6057189e6443}\0\0" */
+ 184:../../Core/Src/usbd_gs_can.c **** 	0x31, 0x00, 0x35, 0x00,
+ 185:../../Core/Src/usbd_gs_can.c **** 	0x62, 0x00, 0x34, 0x00,
+ 186:../../Core/Src/usbd_gs_can.c **** 	0x33, 0x00, 0x30, 0x00,
+ 187:../../Core/Src/usbd_gs_can.c **** 	0x38, 0x00, 0x2d, 0x00,
+ 188:../../Core/Src/usbd_gs_can.c **** 	0x30, 0x00, 0x34, 0x00,
+ 189:../../Core/Src/usbd_gs_can.c **** 	0x64, 0x00, 0x33, 0x00,
+ 190:../../Core/Src/usbd_gs_can.c **** 	0x2d, 0x00, 0x31, 0x00,
+ 191:../../Core/Src/usbd_gs_can.c **** 	0x31, 0x00, 0x65, 0x00,
+ 192:../../Core/Src/usbd_gs_can.c **** 	0x36, 0x00, 0x2d, 0x00,
+ 193:../../Core/Src/usbd_gs_can.c **** 	0x62, 0x00, 0x33, 0x00,
+ 194:../../Core/Src/usbd_gs_can.c **** 	0x65, 0x00, 0x61, 0x00,
+ 195:../../Core/Src/usbd_gs_can.c **** 	0x2d, 0x00, 0x36, 0x00,
+ 196:../../Core/Src/usbd_gs_can.c **** 	0x30, 0x00, 0x35, 0x00,
+ 197:../../Core/Src/usbd_gs_can.c **** 	0x37, 0x00, 0x31, 0x00,
+ 198:../../Core/Src/usbd_gs_can.c **** 	0x38, 0x00, 0x39, 0x00,
+ 199:../../Core/Src/usbd_gs_can.c **** 	0x65, 0x00, 0x36, 0x00,
+ 200:../../Core/Src/usbd_gs_can.c **** 	0x34, 0x00, 0x34, 0x00,
+ 201:../../Core/Src/usbd_gs_can.c **** 	0x33, 0x00, 0x7d, 0x00,
+ 202:../../Core/Src/usbd_gs_can.c **** 	0x00, 0x00, 0x00, 0x00
+ARM GAS  /tmp/ccqiwJRX.s 			page 5
+
+
+ 203:../../Core/Src/usbd_gs_can.c **** };
+ 204:../../Core/Src/usbd_gs_can.c **** 
+ 205:../../Core/Src/usbd_gs_can.c **** 
+ 206:../../Core/Src/usbd_gs_can.c **** // device info
+ 207:../../Core/Src/usbd_gs_can.c **** static const struct gs_device_config USBD_GS_CAN_dconf = {
+ 208:../../Core/Src/usbd_gs_can.c **** 	.reserved1 = 0, // reserved 1
+ 209:../../Core/Src/usbd_gs_can.c **** 	.reserved2 = 0, // reserved 2
+ 210:../../Core/Src/usbd_gs_can.c **** 	.reserved3 = 0, // reserved 3
+ 211:../../Core/Src/usbd_gs_can.c **** 	.icount = CAN_NUM_CHANNELS-1, // interface count (0=1, 1=2..)
+ 212:../../Core/Src/usbd_gs_can.c **** 	.sw_version = 2, // software version
+ 213:../../Core/Src/usbd_gs_can.c **** 	.hw_version = 1 // hardware version
+ 214:../../Core/Src/usbd_gs_can.c **** };
+ 215:../../Core/Src/usbd_gs_can.c **** 
+ 216:../../Core/Src/usbd_gs_can.c **** // bit timing constraints
+ 217:../../Core/Src/usbd_gs_can.c **** static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
+ 218:../../Core/Src/usbd_gs_can.c **** 	.feature = GS_CAN_FEATURE_LISTEN_ONLY // supported features
+ 219:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_LOOP_BACK
+ 220:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_HW_TIMESTAMP
+ 221:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_IDENTIFY
+ 222:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_USER_ID
+ 223:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+ 224:../../Core/Src/usbd_gs_can.c **** #if defined(CANFD_FEATURE_ENABLED)
+ 225:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_FD
+ 226:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_BT_CONST_EXT
+ 227:../../Core/Src/usbd_gs_can.c **** #endif
+ 228:../../Core/Src/usbd_gs_can.c **** #if defined(CAN_TERM_FEATURE_ENABLED)
+ 229:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_TERMINATION
+ 230:../../Core/Src/usbd_gs_can.c **** #endif
+ 231:../../Core/Src/usbd_gs_can.c **** 	,
+ 232:../../Core/Src/usbd_gs_can.c **** 	.fclk_can = CAN_CLOCK_SPEED, // can timing base clock
+ 233:../../Core/Src/usbd_gs_can.c **** 	.tseg1_min = 1, // tseg1 min
+ 234:../../Core/Src/usbd_gs_can.c **** 	.tseg1_max = 16, // tseg1 max
+ 235:../../Core/Src/usbd_gs_can.c **** 	.tseg2_min = 1, // tseg2 min
+ 236:../../Core/Src/usbd_gs_can.c **** 	.tseg2_max = 8, // tseg2 max
+ 237:../../Core/Src/usbd_gs_can.c **** 	.sjw_max = 4, // sjw max
+ 238:../../Core/Src/usbd_gs_can.c **** 	.brp_min = 1, // brp min
+ 239:../../Core/Src/usbd_gs_can.c **** 	.brp_max = 1024, //brp_max
+ 240:../../Core/Src/usbd_gs_can.c **** 	.brp_inc = 1, // brp increment;
+ 241:../../Core/Src/usbd_gs_can.c **** };
+ 242:../../Core/Src/usbd_gs_can.c **** 
+ 243:../../Core/Src/usbd_gs_can.c **** static const struct gs_device_bt_const_extended USBD_GS_CAN_btconst_extended = {
+ 244:../../Core/Src/usbd_gs_can.c **** 	.feature = GS_CAN_FEATURE_LISTEN_ONLY // supported features
+ 245:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_LOOP_BACK
+ 246:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_HW_TIMESTAMP
+ 247:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_IDENTIFY
+ 248:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_USER_ID
+ 249:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+ 250:../../Core/Src/usbd_gs_can.c **** #if defined(CANFD_FEATURE_ENABLED)
+ 251:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_FD
+ 252:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_BT_CONST_EXT
+ 253:../../Core/Src/usbd_gs_can.c **** #endif
+ 254:../../Core/Src/usbd_gs_can.c **** #if defined(CAN_TERM_FEATURE_ENABLED)
+ 255:../../Core/Src/usbd_gs_can.c **** 			   | GS_CAN_FEATURE_TERMINATION
+ 256:../../Core/Src/usbd_gs_can.c **** #endif
+ 257:../../Core/Src/usbd_gs_can.c **** 
+ 258:../../Core/Src/usbd_gs_can.c **** 	,
+ 259:../../Core/Src/usbd_gs_can.c **** 	.fclk_can = CAN_CLOCK_SPEED, // can timing base clock
+ARM GAS  /tmp/ccqiwJRX.s 			page 6
+
+
+ 260:../../Core/Src/usbd_gs_can.c **** 	.tseg1_min = 1, // tseg1 min
+ 261:../../Core/Src/usbd_gs_can.c **** 	.tseg1_max = 16, // tseg1 max
+ 262:../../Core/Src/usbd_gs_can.c **** 	.tseg2_min = 1, // tseg2 min
+ 263:../../Core/Src/usbd_gs_can.c **** 	.tseg2_max = 8, // tseg2 max
+ 264:../../Core/Src/usbd_gs_can.c **** 	.sjw_max = 4, // sjw max
+ 265:../../Core/Src/usbd_gs_can.c **** 	.brp_min = 1, // brp min
+ 266:../../Core/Src/usbd_gs_can.c **** 	.brp_max = 1024, //brp_max
+ 267:../../Core/Src/usbd_gs_can.c **** 	.brp_inc = 1, // brp increment;
+ 268:../../Core/Src/usbd_gs_can.c **** 
+ 269:../../Core/Src/usbd_gs_can.c **** 	.dtseg1_min = 1, // dtseg1_min
+ 270:../../Core/Src/usbd_gs_can.c **** 	.dtseg1_max = 16, // dtseg1_max
+ 271:../../Core/Src/usbd_gs_can.c **** 	.dtseg2_min = 1, // dtseg2_min
+ 272:../../Core/Src/usbd_gs_can.c **** 	.dtseg2_max = 8, // dtseg2_max
+ 273:../../Core/Src/usbd_gs_can.c **** 	.dsjw_max = 4, // dsjw_max
+ 274:../../Core/Src/usbd_gs_can.c **** 	.dbrp_min = 1, // dbrp_min
+ 275:../../Core/Src/usbd_gs_can.c **** 	.dbrp_max = 1024, //dbrp_max
+ 276:../../Core/Src/usbd_gs_can.c **** 	.dbrp_inc = 1, // dbrp_inc;
+ 277:../../Core/Src/usbd_gs_can.c **** };
+ 278:../../Core/Src/usbd_gs_can.c **** 
+ 279:../../Core/Src/usbd_gs_can.c **** uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, USBD_GS_CAN_HandleTypeDef *hcan)
+ 280:../../Core/Src/usbd_gs_can.c **** {
+ 281:../../Core/Src/usbd_gs_can.c **** 	hcan->TxState = 0;
+ 282:../../Core/Src/usbd_gs_can.c **** 	pdev->pClassData = hcan;
+ 283:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 284:../../Core/Src/usbd_gs_can.c **** }
+ 285:../../Core/Src/usbd_gs_can.c **** 
+ 286:../../Core/Src/usbd_gs_can.c **** static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
+ 287:../../Core/Src/usbd_gs_can.c **** {
+ 288:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 289:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 290:../../Core/Src/usbd_gs_can.c **** }
+ 291:../../Core/Src/usbd_gs_can.c **** 
+ 292:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+ 293:../../Core/Src/usbd_gs_can.c **** {
+ 294:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 295:../../Core/Src/usbd_gs_can.c **** 
+ 296:../../Core/Src/usbd_gs_can.c **** 	assert_param(pdev->pClassData);
+ 297:../../Core/Src/usbd_gs_can.c **** 
+ 298:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN,	 USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+ 299:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+ 300:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_PrepareReceive(pdev);
+ 301:../../Core/Src/usbd_gs_can.c **** 
+ 302:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 303:../../Core/Src/usbd_gs_can.c **** }
+ 304:../../Core/Src/usbd_gs_can.c **** 
+ 305:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+ 306:../../Core/Src/usbd_gs_can.c **** {
+ 307:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 308:../../Core/Src/usbd_gs_can.c **** 
+ 309:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);
+ 310:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
+ 311:../../Core/Src/usbd_gs_can.c **** 
+ 312:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 313:../../Core/Src/usbd_gs_can.c **** }
+ 314:../../Core/Src/usbd_gs_can.c **** 
+ 315:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 316:../../Core/Src/usbd_gs_can.c **** {
+ARM GAS  /tmp/ccqiwJRX.s 			page 7
+
+
+ 317:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 318:../../Core/Src/usbd_gs_can.c **** 	uint32_t d32;
+ 319:../../Core/Src/usbd_gs_can.c **** 
+ 320:../../Core/Src/usbd_gs_can.c **** 	switch (req->bRequest) {
+ 321:../../Core/Src/usbd_gs_can.c **** 
+ 322:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_HOST_FORMAT:
+ 323:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_MODE:
+ 324:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_BITTIMING:
+ 325:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_IDENTIFY:
+ 326:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_SET_USER_ID:
+ 327:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_DATA_BITTIMING:
+ 328:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_SET_TERMINATION:
+ 329:../../Core/Src/usbd_gs_can.c **** 			hcan->last_setup_request = *req;
+ 330:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+ 331:../../Core/Src/usbd_gs_can.c **** 			break;
+ 332:../../Core/Src/usbd_gs_can.c **** 
+ 333:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_GET_TERMINATION:
+ 334:../../Core/Src/usbd_gs_can.c **** 			d32 = (uint32_t)can_get_termination(req->wValue);
+ 335:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+ 336:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 337:../../Core/Src/usbd_gs_can.c **** 			break;
+ 338:../../Core/Src/usbd_gs_can.c **** 
+ 339:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_DEVICE_CONFIG:
+ 340:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &USBD_GS_CAN_dconf, sizeof(USBD_GS_CAN_dconf));
+ 341:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 342:../../Core/Src/usbd_gs_can.c **** 			break;
+ 343:../../Core/Src/usbd_gs_can.c **** 
+ 344:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_BT_CONST:
+ 345:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst, sizeof(USBD_GS_CAN_btconst));
+ 346:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 347:../../Core/Src/usbd_gs_can.c **** 			break;
+ 348:../../Core/Src/usbd_gs_can.c **** 
+ 349:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_BT_CONST_EXT:
+ 350:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst_extended, sizeof(USBD_GS_CAN_btconst_extended));
+ 351:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 352:../../Core/Src/usbd_gs_can.c **** 			break;
+ 353:../../Core/Src/usbd_gs_can.c **** 
+ 354:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_TIMESTAMP:
+ 355:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
+ 356:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
+ 357:../../Core/Src/usbd_gs_can.c **** 			break;
+ 358:../../Core/Src/usbd_gs_can.c **** 
+ 359:../../Core/Src/usbd_gs_can.c **** 		default:
+ 360:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlError(pdev, req);
+ 361:../../Core/Src/usbd_gs_can.c **** 	}
+ 362:../../Core/Src/usbd_gs_can.c **** 
+ 363:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 364:../../Core/Src/usbd_gs_can.c **** }
+ 365:../../Core/Src/usbd_gs_can.c **** 
+ 366:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 367:../../Core/Src/usbd_gs_can.c **** {
+ 368:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 369:../../Core/Src/usbd_gs_can.c **** 	switch (req->bRequest) {
+ 370:../../Core/Src/usbd_gs_can.c **** 		case 0: // DETACH request
+ 371:../../Core/Src/usbd_gs_can.c **** 			hcan->dfu_detach_requested = true;
+ 372:../../Core/Src/usbd_gs_can.c **** 			break;
+ 373:../../Core/Src/usbd_gs_can.c **** 
+ARM GAS  /tmp/ccqiwJRX.s 			page 8
+
+
+ 374:../../Core/Src/usbd_gs_can.c **** 		case 3: // GET_STATUS request
+ 375:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[0] = 0x00; // bStatus: 0x00 == OK
+ 376:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
+ 377:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[2] = 0x00;
+ 378:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[3] = 0x00;
+ 379:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[4] = 0x00; // bState: appIDLE
+ 380:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
+ 381:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
+ 382:../../Core/Src/usbd_gs_can.c **** 			break;
+ 383:../../Core/Src/usbd_gs_can.c **** 
+ 384:../../Core/Src/usbd_gs_can.c **** 		default:
+ 385:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlError(pdev, req);
+ 386:../../Core/Src/usbd_gs_can.c **** 
+ 387:../../Core/Src/usbd_gs_can.c **** 	}
+ 388:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 389:../../Core/Src/usbd_gs_can.c **** }
+ 390:../../Core/Src/usbd_gs_can.c **** 
+ 391:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 392:../../Core/Src/usbd_gs_can.c **** {
+ 393:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_rcpt = req->bmRequest & 0x1F;
+ 394:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_type = (req->bmRequest >> 5) & 0x03;
+ 395:../../Core/Src/usbd_gs_can.c **** 
+ 396:../../Core/Src/usbd_gs_can.c **** 	if (
+ 397:../../Core/Src/usbd_gs_can.c **** 		(req_type == 0x01)// class request
+ 398:../../Core/Src/usbd_gs_can.c **** 	   && (req_rcpt == 0x01) // recipient: interface
+ 399:../../Core/Src/usbd_gs_can.c **** 	   && (req->wIndex == DFU_INTERFACE_NUM)
+ 400:../../Core/Src/usbd_gs_can.c **** 		) {
+ 401:../../Core/Src/usbd_gs_can.c **** 		return USBD_GS_CAN_DFU_Request(pdev, req);
+ 402:../../Core/Src/usbd_gs_can.c **** 	} else {
+ 403:../../Core/Src/usbd_gs_can.c **** 		return USBD_GS_CAN_Config_Request(pdev, req);
+ 404:../../Core/Src/usbd_gs_can.c **** 	}
+ 405:../../Core/Src/usbd_gs_can.c **** }
+ 406:../../Core/Src/usbd_gs_can.c **** 
+ 407:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 408:../../Core/Src/usbd_gs_can.c **** {
+ 409:../../Core/Src/usbd_gs_can.c **** 	static uint8_t ifalt = 0;
+ 410:../../Core/Src/usbd_gs_can.c **** 
+ 411:../../Core/Src/usbd_gs_can.c **** 	switch (req->bmRequest & USB_REQ_TYPE_MASK) {
+ 412:../../Core/Src/usbd_gs_can.c **** 
+ 413:../../Core/Src/usbd_gs_can.c **** 		case USB_REQ_TYPE_CLASS:
+ 414:../../Core/Src/usbd_gs_can.c **** 		case USB_REQ_TYPE_VENDOR:
+ 415:../../Core/Src/usbd_gs_can.c **** 			return USBD_GS_CAN_Vendor_Request(pdev, req);
+ 416:../../Core/Src/usbd_gs_can.c **** 
+ 417:../../Core/Src/usbd_gs_can.c **** 		case USB_REQ_TYPE_STANDARD:
+ 418:../../Core/Src/usbd_gs_can.c **** 			switch (req->bRequest) {
+ 419:../../Core/Src/usbd_gs_can.c **** 				case USB_REQ_GET_INTERFACE:
+ 420:../../Core/Src/usbd_gs_can.c **** 					USBD_CtlSendData(pdev, &ifalt, 1);
+ 421:../../Core/Src/usbd_gs_can.c **** 					break;
+ 422:../../Core/Src/usbd_gs_can.c **** 
+ 423:../../Core/Src/usbd_gs_can.c **** 				case USB_REQ_SET_INTERFACE:
+ 424:../../Core/Src/usbd_gs_can.c **** 				default:
+ 425:../../Core/Src/usbd_gs_can.c **** 					break;
+ 426:../../Core/Src/usbd_gs_can.c **** 			}
+ 427:../../Core/Src/usbd_gs_can.c **** 			break;
+ 428:../../Core/Src/usbd_gs_can.c **** 
+ 429:../../Core/Src/usbd_gs_can.c **** 		default:
+ 430:../../Core/Src/usbd_gs_can.c **** 			break;
+ARM GAS  /tmp/ccqiwJRX.s 			page 9
+
+
+ 431:../../Core/Src/usbd_gs_can.c **** 	}
+ 432:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 433:../../Core/Src/usbd_gs_can.c **** }
+ 434:../../Core/Src/usbd_gs_can.c **** 
+ 435:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
+ 436:../../Core/Src/usbd_gs_can.c **** 
+ 437:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 438:../../Core/Src/usbd_gs_can.c **** 
+ 439:../../Core/Src/usbd_gs_can.c **** 	struct gs_device_bittiming *timing;
+ 440:../../Core/Src/usbd_gs_can.c **** 	struct gs_device_mode *mode;
+ 441:../../Core/Src/usbd_gs_can.c **** 	CAN_HANDLE_TYPEDEF *ch;
+ 442:../../Core/Src/usbd_gs_can.c **** 	uint32_t param_u32;
+ 443:../../Core/Src/usbd_gs_can.c **** 
+ 444:../../Core/Src/usbd_gs_can.c **** 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+ 445:../../Core/Src/usbd_gs_can.c **** 
+ 446:../../Core/Src/usbd_gs_can.c **** 	switch (req->bRequest) {
+ 447:../../Core/Src/usbd_gs_can.c **** 
+ 448:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_HOST_FORMAT:
+ 449:../../Core/Src/usbd_gs_can.c **** 			/* this feature is unused by this firmware */
+ 450:../../Core/Src/usbd_gs_can.c **** 			break;
+ 451:../../Core/Src/usbd_gs_can.c **** 
+ 452:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_IDENTIFY:
+ 453:../../Core/Src/usbd_gs_can.c **** 			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+ 454:../../Core/Src/usbd_gs_can.c **** 			if (param_u32) {
+ 455:../../Core/Src/usbd_gs_can.c **** 				// Blink an LED sequence
+ 456:../../Core/Src/usbd_gs_can.c **** 			}
+ 457:../../Core/Src/usbd_gs_can.c **** 			else {
+ 458:../../Core/Src/usbd_gs_can.c **** 				ch = hcan->channels[req->wValue];
+ 459:../../Core/Src/usbd_gs_can.c **** 				// Blink an LED sequence
+ 460:../../Core/Src/usbd_gs_can.c **** 			}
+ 461:../../Core/Src/usbd_gs_can.c **** 			can_identify_cb(param_u32);
+ 462:../../Core/Src/usbd_gs_can.c **** 			break;
+ 463:../../Core/Src/usbd_gs_can.c **** 
+ 464:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_SET_TERMINATION:
+ 465:../../Core/Src/usbd_gs_can.c **** 			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+ 466:../../Core/Src/usbd_gs_can.c **** 
+ 467:../../Core/Src/usbd_gs_can.c **** 			/* change the state of the GPIO for the termination for this channel */
+ 468:../../Core/Src/usbd_gs_can.c **** 			can_set_termination(req->wValue, (uint8_t)param_u32);
+ 469:../../Core/Src/usbd_gs_can.c **** 			break;
+ 470:../../Core/Src/usbd_gs_can.c **** 
+ 471:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_MODE:
+ 472:../../Core/Src/usbd_gs_can.c **** 			if (req->wValue < CAN_NUM_CHANNELS) {
+ 473:../../Core/Src/usbd_gs_can.c **** 
+ 474:../../Core/Src/usbd_gs_can.c **** 				mode = (struct gs_device_mode*)hcan->ep0_buf;
+ 475:../../Core/Src/usbd_gs_can.c **** 				ch = hcan->channels[req->wValue];
+ 476:../../Core/Src/usbd_gs_can.c **** 
+ 477:../../Core/Src/usbd_gs_can.c **** 				if (mode->mode == GS_CAN_MODE_RESET) {
+ 478:../../Core/Src/usbd_gs_can.c **** 
+ 479:../../Core/Src/usbd_gs_can.c **** 					can_disable(ch);
+ 480:../../Core/Src/usbd_gs_can.c **** 				}
+ 481:../../Core/Src/usbd_gs_can.c **** 				else if (mode->mode == GS_CAN_MODE_START) {
+ 482:../../Core/Src/usbd_gs_can.c **** 					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+ 483:../../Core/Src/usbd_gs_can.c **** 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+ 484:../../Core/Src/usbd_gs_can.c **** 					can_enable(ch,
+ 485:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+ 486:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
+ 487:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0,
+ARM GAS  /tmp/ccqiwJRX.s 			page 10
+
+
+ 488:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_FD) != 0
+ 489:../../Core/Src/usbd_gs_can.c **** 							   );
+ 490:../../Core/Src/usbd_gs_can.c **** 				}
+ 491:../../Core/Src/usbd_gs_can.c **** 			}
+ 492:../../Core/Src/usbd_gs_can.c **** 			break;
+ 493:../../Core/Src/usbd_gs_can.c **** 
+ 494:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_BITTIMING:
+ 495:../../Core/Src/usbd_gs_can.c **** 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+ 496:../../Core/Src/usbd_gs_can.c **** 			if (req->wValue < CAN_NUM_CHANNELS) {
+ 497:../../Core/Src/usbd_gs_can.c **** 				can_set_bittiming(
+ 498:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ 499:../../Core/Src/usbd_gs_can.c **** 					timing->brp,
+ 500:../../Core/Src/usbd_gs_can.c **** 					timing->prop_seg + timing->phase_seg1,
+ 501:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 502:../../Core/Src/usbd_gs_can.c **** 					timing->sjw
+ 503:../../Core/Src/usbd_gs_can.c **** 					);
+ 504:../../Core/Src/usbd_gs_can.c **** 			}
+ 505:../../Core/Src/usbd_gs_can.c **** 			break;
+ 506:../../Core/Src/usbd_gs_can.c **** 
+ 507:../../Core/Src/usbd_gs_can.c **** 		case GS_USB_BREQ_DATA_BITTIMING:
+ 508:../../Core/Src/usbd_gs_can.c **** 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+ 509:../../Core/Src/usbd_gs_can.c **** 			if (req->wValue < CAN_NUM_CHANNELS) {
+ 510:../../Core/Src/usbd_gs_can.c **** 				can_set_data_bittiming(
+ 511:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ 512:../../Core/Src/usbd_gs_can.c **** 					timing->brp,
+ 513:../../Core/Src/usbd_gs_can.c **** 					timing->prop_seg + timing->phase_seg1,
+ 514:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 515:../../Core/Src/usbd_gs_can.c **** 					timing->sjw
+ 516:../../Core/Src/usbd_gs_can.c **** 					);
+ 517:../../Core/Src/usbd_gs_can.c **** 			}
+ 518:../../Core/Src/usbd_gs_can.c **** 			break;
+ 519:../../Core/Src/usbd_gs_can.c **** 
+ 520:../../Core/Src/usbd_gs_can.c **** 		default:
+ 521:../../Core/Src/usbd_gs_can.c **** 			break;
+ 522:../../Core/Src/usbd_gs_can.c **** 	}
+ 523:../../Core/Src/usbd_gs_can.c **** 
+ 524:../../Core/Src/usbd_gs_can.c **** 	req->bRequest = 0xFF;
+ 525:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 526:../../Core/Src/usbd_gs_can.c **** }
+ 527:../../Core/Src/usbd_gs_can.c **** 
+ 528:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
+  28              		.loc 1 528 76 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+ 529:../../Core/Src/usbd_gs_can.c **** 	(void) epnum;
+  33              		.loc 1 529 2 view .LVU1
+ 530:../../Core/Src/usbd_gs_can.c **** 
+ 531:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+  34              		.loc 1 531 2 view .LVU2
+  35              		.loc 1 531 29 is_stmt 0 view .LVU3
+  36 0000 D0F8BC32 		ldr	r3, [r0, #700]
+  37              	.LVL1:
+ 532:../../Core/Src/usbd_gs_can.c **** 	hcan->TxState = 0;
+  38              		.loc 1 532 2 is_stmt 1 view .LVU4
+  39              		.loc 1 532 16 is_stmt 0 view .LVU5
+ARM GAS  /tmp/ccqiwJRX.s 			page 11
+
+
+  40 0004 0020     		movs	r0, #0
+  41              	.LVL2:
+  42              		.loc 1 532 16 view .LVU6
+  43 0006 9864     		str	r0, [r3, #72]
+ 533:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+  44              		.loc 1 533 2 is_stmt 1 view .LVU7
+ 534:../../Core/Src/usbd_gs_can.c **** }
+  45              		.loc 1 534 1 is_stmt 0 view .LVU8
+  46 0008 7047     		bx	lr
+  47              		.cfi_endproc
+  48              	.LFE158:
+  50              		.section	.text.USBD_GS_CAN_SOF,"ax",%progbits
+  51              		.align	1
+  52              		.syntax unified
+  53              		.thumb
+  54              		.thumb_func
+  56              	USBD_GS_CAN_SOF:
+  57              	.LVL3:
+  58              	.LFB160:
+ 535:../../Core/Src/usbd_gs_can.c **** 
+ 536:../../Core/Src/usbd_gs_can.c **** // Note that the return value is completely ignored by the stack.
+ 537:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
+ 538:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 539:../../Core/Src/usbd_gs_can.c **** 
+ 540:../../Core/Src/usbd_gs_can.c **** 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
+ 541:../../Core/Src/usbd_gs_can.c **** #if defined(CANFD_FEATURE_ENABLED)
+ 542:../../Core/Src/usbd_gs_can.c **** 	if (rxlen < (GS_HOST_CLASSIC_FRAME_SIZE)-4)
+ 543:../../Core/Src/usbd_gs_can.c **** #else
+ 544:../../Core/Src/usbd_gs_can.c **** 	if (rxlen < (GS_HOST_FRAME_SIZE)-4)
+ 545:../../Core/Src/usbd_gs_can.c **** #endif
+ 546:../../Core/Src/usbd_gs_can.c **** 	{
+ 547:../../Core/Src/usbd_gs_can.c **** 		// Invalid frame length, just ignore it and receive into the same buffer
+ 548:../../Core/Src/usbd_gs_can.c **** 		// again next time.
+ 549:../../Core/Src/usbd_gs_can.c **** 		USBD_GS_CAN_PrepareReceive(pdev);
+ 550:../../Core/Src/usbd_gs_can.c **** 		return USBD_OK;
+ 551:../../Core/Src/usbd_gs_can.c **** 	}
+ 552:../../Core/Src/usbd_gs_can.c **** 
+ 553:../../Core/Src/usbd_gs_can.c **** 	// Enqueue the frame we just received.
+ 554:../../Core/Src/usbd_gs_can.c **** #if defined (USE_MULTICHANNEL_QUEUE)
+ 555:../../Core/Src/usbd_gs_can.c **** 	xQueueSendToBackFromISR(hGS_CAN.queue_from_hostHandle[hcan->from_host_frame.frame.channel], &hcan-
+ 556:../../Core/Src/usbd_gs_can.c **** #else
+ 557:../../Core/Src/usbd_gs_can.c **** 	xQueueSendToBackFromISR(hGS_CAN.queue_from_hostHandle, &hcan->from_host_frame, NULL);
+ 558:../../Core/Src/usbd_gs_can.c **** #endif
+ 559:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_PrepareReceive(pdev);
+ 560:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 561:../../Core/Src/usbd_gs_can.c **** }
+ 562:../../Core/Src/usbd_gs_can.c **** 
+ 563:../../Core/Src/usbd_gs_can.c **** static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
+ 564:../../Core/Src/usbd_gs_can.c **** {
+  59              		.loc 1 564 1 is_stmt 1 view -0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+ 565:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+  64              		.loc 1 565 2 view .LVU10
+  65              		.loc 1 565 29 is_stmt 0 view .LVU11
+ARM GAS  /tmp/ccqiwJRX.s 			page 12
+
+
+  66 0000 D0F8BC32 		ldr	r3, [r0, #700]
+  67              	.LVL4:
+ 566:../../Core/Src/usbd_gs_can.c **** 	hcan->sof_timestamp_us = __HAL_TIM_GET_COUNTER(&htim2);
+  68              		.loc 1 566 2 is_stmt 1 view .LVU12
+  69              		.loc 1 566 27 is_stmt 0 view .LVU13
+  70 0004 034A     		ldr	r2, .L3
+  71 0006 1268     		ldr	r2, [r2]
+  72 0008 526A     		ldr	r2, [r2, #36]
+  73              		.loc 1 566 25 view .LVU14
+  74 000a C3F8B820 		str	r2, [r3, #184]
+ 567:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+  75              		.loc 1 567 2 is_stmt 1 view .LVU15
+ 568:../../Core/Src/usbd_gs_can.c **** }
+  76              		.loc 1 568 1 is_stmt 0 view .LVU16
+  77 000e 0020     		movs	r0, #0
+  78              	.LVL5:
+  79              		.loc 1 568 1 view .LVU17
+  80 0010 7047     		bx	lr
+  81              	.L4:
+  82 0012 00BF     		.align	2
+  83              	.L3:
+  84 0014 00000000 		.word	htim2
+  85              		.cfi_endproc
+  86              	.LFE160:
+  88              		.section	.text.USBD_GS_CAN_GetCfgDesc,"ax",%progbits
+  89              		.align	1
+  90              		.syntax unified
+  91              		.thumb
+  92              		.thumb_func
+  94              	USBD_GS_CAN_GetCfgDesc:
+  95              	.LVL6:
+  96              	.LFB161:
+ 569:../../Core/Src/usbd_gs_can.c **** 
+ 570:../../Core/Src/usbd_gs_can.c **** static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
+ 571:../../Core/Src/usbd_gs_can.c **** {
+  97              		.loc 1 571 1 is_stmt 1 view -0
+  98              		.cfi_startproc
+  99              		@ args = 0, pretend = 0, frame = 0
+ 100              		@ frame_needed = 0, uses_anonymous_args = 0
+ 101              		.loc 1 571 1 is_stmt 0 view .LVU19
+ 102 0000 30B5     		push	{r4, r5, lr}
+ 103              	.LCFI0:
+ 104              		.cfi_def_cfa_offset 12
+ 105              		.cfi_offset 4, -12
+ 106              		.cfi_offset 5, -8
+ 107              		.cfi_offset 14, -4
+ 572:../../Core/Src/usbd_gs_can.c **** 	*len = sizeof(USBD_GS_CAN_CfgDesc);
+ 108              		.loc 1 572 2 is_stmt 1 view .LVU20
+ 109              		.loc 1 572 7 is_stmt 0 view .LVU21
+ 110 0002 3223     		movs	r3, #50
+ 111 0004 0380     		strh	r3, [r0]	@ movhi
+ 573:../../Core/Src/usbd_gs_can.c **** 	memcpy(USBD_StrDesc, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
+ 112              		.loc 1 573 2 is_stmt 1 view .LVU22
+ 113 0006 0A4D     		ldr	r5, .L8
+ 114 0008 0A4C     		ldr	r4, .L8+4
+ 115 000a 05F1300E 		add	lr, r5, #48
+ 116              	.LVL7:
+ARM GAS  /tmp/ccqiwJRX.s 			page 13
+
+
+ 117              	.L6:
+ 118              		.loc 1 573 2 is_stmt 0 view .LVU23
+ 119 000e AC46     		mov	ip, r5
+ 120 0010 BCE80F00 		ldmia	ip!, {r0, r1, r2, r3}
+ 121 0014 2060     		str	r0, [r4]	@ unaligned
+ 122 0016 6160     		str	r1, [r4, #4]	@ unaligned
+ 123 0018 A260     		str	r2, [r4, #8]	@ unaligned
+ 124 001a E360     		str	r3, [r4, #12]	@ unaligned
+ 125 001c 6546     		mov	r5, ip
+ 126 001e 1034     		adds	r4, r4, #16
+ 127 0020 F445     		cmp	ip, lr
+ 128 0022 F4D1     		bne	.L6
+ 129 0024 BCF80030 		ldrh	r3, [ip]	@ unaligned
+ 130 0028 2380     		strh	r3, [r4]	@ unaligned
+ 574:../../Core/Src/usbd_gs_can.c **** 	return USBD_StrDesc;
+ 131              		.loc 1 574 2 is_stmt 1 view .LVU24
+ 575:../../Core/Src/usbd_gs_can.c **** }
+ 132              		.loc 1 575 1 is_stmt 0 view .LVU25
+ 133 002a 0248     		ldr	r0, .L8+4
+ 134 002c 30BD     		pop	{r4, r5, pc}
+ 135              	.L9:
+ 136 002e 00BF     		.align	2
+ 137              	.L8:
+ 138 0030 00000000 		.word	.LANCHOR0
+ 139 0034 00000000 		.word	USBD_StrDesc
+ 140              		.cfi_endproc
+ 141              	.LFE161:
+ 143              		.section	.rodata.USBD_GS_CAN_GetStrDesc.str1.4,"aMS",%progbits,1
+ 144              		.align	2
+ 145              	.LC1:
+ 146 0000 62756467 		.ascii	"budgetcan_h7 DFU interface\000"
+ 146      65746361 
+ 146      6E5F6837 
+ 146      20444655 
+ 146      20696E74 
+ 147              		.section	.text.USBD_GS_CAN_GetStrDesc,"ax",%progbits
+ 148              		.align	1
+ 149              		.global	USBD_GS_CAN_GetStrDesc
+ 150              		.syntax unified
+ 151              		.thumb
+ 152              		.thumb_func
+ 154              	USBD_GS_CAN_GetStrDesc:
+ 155              	.LVL8:
+ 156              	.LFB162:
+ 576:../../Core/Src/usbd_gs_can.c **** 
+ 577:../../Core/Src/usbd_gs_can.c **** uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)
+ 578:../../Core/Src/usbd_gs_can.c **** {
+ 157              		.loc 1 578 1 is_stmt 1 view -0
+ 158              		.cfi_startproc
+ 159              		@ args = 0, pretend = 0, frame = 0
+ 160              		@ frame_needed = 0, uses_anonymous_args = 0
+ 161              		.loc 1 578 1 is_stmt 0 view .LVU27
+ 162 0000 38B5     		push	{r3, r4, r5, lr}
+ 163              	.LCFI1:
+ 164              		.cfi_def_cfa_offset 16
+ 165              		.cfi_offset 3, -16
+ 166              		.cfi_offset 4, -12
+ARM GAS  /tmp/ccqiwJRX.s 			page 14
+
+
+ 167              		.cfi_offset 5, -8
+ 168              		.cfi_offset 14, -4
+ 579:../../Core/Src/usbd_gs_can.c **** 	UNUSED(pdev);
+ 169              		.loc 1 579 2 is_stmt 1 view .LVU28
+ 580:../../Core/Src/usbd_gs_can.c **** 
+ 581:../../Core/Src/usbd_gs_can.c **** 	switch (index) {
+ 170              		.loc 1 581 2 view .LVU29
+ 171 0002 E029     		cmp	r1, #224
+ 172 0004 08D0     		beq	.L11
+ 173 0006 EE29     		cmp	r1, #238
+ 174 0008 0DD0     		beq	.L12
+ 582:../../Core/Src/usbd_gs_can.c **** 		case DFU_INTERFACE_STR_INDEX:
+ 583:../../Core/Src/usbd_gs_can.c **** 			USBD_GetString(DFU_INTERFACE_STRING, USBD_StrDesc, length);
+ 584:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 585:../../Core/Src/usbd_gs_can.c **** 		case 0xEE:
+ 586:../../Core/Src/usbd_gs_can.c **** 			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
+ 587:../../Core/Src/usbd_gs_can.c **** 			memcpy(USBD_StrDesc, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+ 588:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 589:../../Core/Src/usbd_gs_can.c **** 		default:
+ 590:../../Core/Src/usbd_gs_can.c **** 			*length = 0;
+ 175              		.loc 1 590 4 view .LVU30
+ 176              		.loc 1 590 12 is_stmt 0 view .LVU31
+ 177 000a 0024     		movs	r4, #0
+ 178 000c 1480     		strh	r4, [r2]	@ movhi
+ 591:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlError(pdev, 0);
+ 179              		.loc 1 591 4 is_stmt 1 view .LVU32
+ 180 000e 2146     		mov	r1, r4
+ 181              	.LVL9:
+ 182              		.loc 1 591 4 is_stmt 0 view .LVU33
+ 183 0010 FFF7FEFF 		bl	USBD_CtlError
+ 184              	.LVL10:
+ 592:../../Core/Src/usbd_gs_can.c **** 			return 0;
+ 185              		.loc 1 592 4 is_stmt 1 view .LVU34
+ 186              		.loc 1 592 11 is_stmt 0 view .LVU35
+ 187 0014 2046     		mov	r0, r4
+ 188 0016 05E0     		b	.L10
+ 189              	.LVL11:
+ 190              	.L11:
+ 583:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 191              		.loc 1 583 4 is_stmt 1 view .LVU36
+ 192 0018 094C     		ldr	r4, .L17
+ 193 001a 2146     		mov	r1, r4
+ 194              	.LVL12:
+ 583:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 195              		.loc 1 583 4 is_stmt 0 view .LVU37
+ 196 001c 0948     		ldr	r0, .L17+4
+ 197              	.LVL13:
+ 583:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 198              		.loc 1 583 4 view .LVU38
+ 199 001e FFF7FEFF 		bl	USBD_GetString
+ 200              	.LVL14:
+ 584:../../Core/Src/usbd_gs_can.c **** 		case 0xEE:
+ 201              		.loc 1 584 4 is_stmt 1 view .LVU39
+ 584:../../Core/Src/usbd_gs_can.c **** 		case 0xEE:
+ 202              		.loc 1 584 11 is_stmt 0 view .LVU40
+ 203 0022 2046     		mov	r0, r4
+ 204              	.L10:
+ARM GAS  /tmp/ccqiwJRX.s 			page 15
+
+
+ 593:../../Core/Src/usbd_gs_can.c **** 	}
+ 594:../../Core/Src/usbd_gs_can.c **** }
+ 205              		.loc 1 594 1 view .LVU41
+ 206 0024 38BD     		pop	{r3, r4, r5, pc}
+ 207              	.LVL15:
+ 208              	.L12:
+ 586:../../Core/Src/usbd_gs_can.c **** 			memcpy(USBD_StrDesc, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+ 209              		.loc 1 586 4 is_stmt 1 view .LVU42
+ 586:../../Core/Src/usbd_gs_can.c **** 			memcpy(USBD_StrDesc, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+ 210              		.loc 1 586 12 is_stmt 0 view .LVU43
+ 211 0026 1223     		movs	r3, #18
+ 212 0028 1380     		strh	r3, [r2]	@ movhi
+ 587:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 213              		.loc 1 587 4 is_stmt 1 view .LVU44
+ 214 002a 054C     		ldr	r4, .L17
+ 215 002c 064D     		ldr	r5, .L17+8
+ 216 002e 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 217              	.LVL16:
+ 587:../../Core/Src/usbd_gs_can.c **** 			return USBD_StrDesc;
+ 218              		.loc 1 587 4 is_stmt 0 view .LVU45
+ 219 0030 2060     		str	r0, [r4]	@ unaligned
+ 220 0032 6160     		str	r1, [r4, #4]	@ unaligned
+ 221 0034 A260     		str	r2, [r4, #8]	@ unaligned
+ 222 0036 E360     		str	r3, [r4, #12]	@ unaligned
+ 223 0038 2B88     		ldrh	r3, [r5]	@ unaligned
+ 224 003a 2382     		strh	r3, [r4, #16]	@ unaligned
+ 588:../../Core/Src/usbd_gs_can.c **** 		default:
+ 225              		.loc 1 588 4 is_stmt 1 view .LVU46
+ 588:../../Core/Src/usbd_gs_can.c **** 		default:
+ 226              		.loc 1 588 11 is_stmt 0 view .LVU47
+ 227 003c 2046     		mov	r0, r4
+ 228 003e F1E7     		b	.L10
+ 229              	.L18:
+ 230              		.align	2
+ 231              	.L17:
+ 232 0040 00000000 		.word	USBD_StrDesc
+ 233 0044 00000000 		.word	.LC1
+ 234 0048 34000000 		.word	.LANCHOR0+52
+ 235              		.cfi_endproc
+ 236              	.LFE162:
+ 238              		.section	.text.USBD_GS_CAN_EP0_RxReady,"ax",%progbits
+ 239              		.align	1
+ 240              		.syntax unified
+ 241              		.thumb
+ 242              		.thumb_func
+ 244              	USBD_GS_CAN_EP0_RxReady:
+ 245              	.LVL17:
+ 246              	.LFB157:
+ 435:../../Core/Src/usbd_gs_can.c **** 
+ 247              		.loc 1 435 66 is_stmt 1 view -0
+ 248              		.cfi_startproc
+ 249              		@ args = 0, pretend = 0, frame = 0
+ 250              		@ frame_needed = 0, uses_anonymous_args = 0
+ 435:../../Core/Src/usbd_gs_can.c **** 
+ 251              		.loc 1 435 66 is_stmt 0 view .LVU49
+ 252 0000 30B5     		push	{r4, r5, lr}
+ 253              	.LCFI2:
+ARM GAS  /tmp/ccqiwJRX.s 			page 16
+
+
+ 254              		.cfi_def_cfa_offset 12
+ 255              		.cfi_offset 4, -12
+ 256              		.cfi_offset 5, -8
+ 257              		.cfi_offset 14, -4
+ 258 0002 83B0     		sub	sp, sp, #12
+ 259              	.LCFI3:
+ 260              		.cfi_def_cfa_offset 24
+ 437:../../Core/Src/usbd_gs_can.c **** 
+ 261              		.loc 1 437 2 is_stmt 1 view .LVU50
+ 437:../../Core/Src/usbd_gs_can.c **** 
+ 262              		.loc 1 437 29 is_stmt 0 view .LVU51
+ 263 0004 D0F8BC42 		ldr	r4, [r0, #700]
+ 264              	.LVL18:
+ 439:../../Core/Src/usbd_gs_can.c **** 	struct gs_device_mode *mode;
+ 265              		.loc 1 439 2 is_stmt 1 view .LVU52
+ 440:../../Core/Src/usbd_gs_can.c **** 	CAN_HANDLE_TYPEDEF *ch;
+ 266              		.loc 1 440 2 view .LVU53
+ 441:../../Core/Src/usbd_gs_can.c **** 	uint32_t param_u32;
+ 267              		.loc 1 441 2 view .LVU54
+ 442:../../Core/Src/usbd_gs_can.c **** 
+ 268              		.loc 1 442 2 view .LVU55
+ 444:../../Core/Src/usbd_gs_can.c **** 
+ 269              		.loc 1 444 2 view .LVU56
+ 446:../../Core/Src/usbd_gs_can.c **** 
+ 270              		.loc 1 446 2 view .LVU57
+ 446:../../Core/Src/usbd_gs_can.c **** 
+ 271              		.loc 1 446 13 is_stmt 0 view .LVU58
+ 272 0008 94F84D30 		ldrb	r3, [r4, #77]	@ zero_extendqisi2
+ 446:../../Core/Src/usbd_gs_can.c **** 
+ 273              		.loc 1 446 2 view .LVU59
+ 274 000c 013B     		subs	r3, r3, #1
+ 275 000e 0B2B     		cmp	r3, #11
+ 276 0010 0AD8     		bhi	.L20
+ 277 0012 DFE803F0 		tbb	[pc, r3]
+ 278              	.L22:
+ 279 0016 3A       		.byte	(.L26-.L22)/2
+ 280 0017 16       		.byte	(.L25-.L22)/2
+ 281 0018 09       		.byte	(.L20-.L22)/2
+ 282 0019 09       		.byte	(.L20-.L22)/2
+ 283 001a 09       		.byte	(.L20-.L22)/2
+ 284 001b 09       		.byte	(.L20-.L22)/2
+ 285 001c 06       		.byte	(.L24-.L22)/2
+ 286 001d 09       		.byte	(.L20-.L22)/2
+ 287 001e 09       		.byte	(.L20-.L22)/2
+ 288 001f 4D       		.byte	(.L23-.L22)/2
+ 289 0020 09       		.byte	(.L20-.L22)/2
+ 290 0021 0F       		.byte	(.L21-.L22)/2
+ 291              		.p2align 1
+ 292              	.L24:
+ 453:../../Core/Src/usbd_gs_can.c **** 			if (param_u32) {
+ 293              		.loc 1 453 4 is_stmt 1 view .LVU60
+ 294              	.LVL19:
+ 454:../../Core/Src/usbd_gs_can.c **** 				// Blink an LED sequence
+ 295              		.loc 1 454 4 view .LVU61
+ 461:../../Core/Src/usbd_gs_can.c **** 			break;
+ 296              		.loc 1 461 4 view .LVU62
+ 297 0022 2068     		ldr	r0, [r4]	@ unaligned
+ARM GAS  /tmp/ccqiwJRX.s 			page 17
+
+
+ 298              	.LVL20:
+ 461:../../Core/Src/usbd_gs_can.c **** 			break;
+ 299              		.loc 1 461 4 is_stmt 0 view .LVU63
+ 300 0024 FFF7FEFF 		bl	can_identify_cb
+ 301              	.LVL21:
+ 462:../../Core/Src/usbd_gs_can.c **** 
+ 302              		.loc 1 462 4 is_stmt 1 view .LVU64
+ 303              	.L20:
+ 524:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 304              		.loc 1 524 2 view .LVU65
+ 524:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 305              		.loc 1 524 16 is_stmt 0 view .LVU66
+ 306 0028 FF23     		movs	r3, #255
+ 307 002a 84F84D30 		strb	r3, [r4, #77]
+ 525:../../Core/Src/usbd_gs_can.c **** }
+ 308              		.loc 1 525 2 is_stmt 1 view .LVU67
+ 526:../../Core/Src/usbd_gs_can.c **** 
+ 309              		.loc 1 526 1 is_stmt 0 view .LVU68
+ 310 002e 0020     		movs	r0, #0
+ 311 0030 03B0     		add	sp, sp, #12
+ 312              	.LCFI4:
+ 313              		.cfi_remember_state
+ 314              		.cfi_def_cfa_offset 12
+ 315              		@ sp needed
+ 316 0032 30BD     		pop	{r4, r5, pc}
+ 317              	.LVL22:
+ 318              	.L21:
+ 319              	.LCFI5:
+ 320              		.cfi_restore_state
+ 465:../../Core/Src/usbd_gs_can.c **** 
+ 321              		.loc 1 465 4 is_stmt 1 view .LVU69
+ 468:../../Core/Src/usbd_gs_can.c **** 			break;
+ 322              		.loc 1 468 4 view .LVU70
+ 323 0034 2168     		ldr	r1, [r4]	@ unaligned
+ 324 0036 C9B2     		uxtb	r1, r1
+ 325 0038 94F84E00 		ldrb	r0, [r4, #78]	@ zero_extendqisi2
+ 326              	.LVL23:
+ 468:../../Core/Src/usbd_gs_can.c **** 			break;
+ 327              		.loc 1 468 4 is_stmt 0 view .LVU71
+ 328 003c FFF7FEFF 		bl	can_set_termination
+ 329              	.LVL24:
+ 469:../../Core/Src/usbd_gs_can.c **** 
+ 330              		.loc 1 469 4 is_stmt 1 view .LVU72
+ 331 0040 F2E7     		b	.L20
+ 332              	.LVL25:
+ 333              	.L25:
+ 472:../../Core/Src/usbd_gs_can.c **** 
+ 334              		.loc 1 472 4 view .LVU73
+ 472:../../Core/Src/usbd_gs_can.c **** 
+ 335              		.loc 1 472 11 is_stmt 0 view .LVU74
+ 336 0042 B4F84E30 		ldrh	r3, [r4, #78]
+ 472:../../Core/Src/usbd_gs_can.c **** 
+ 337              		.loc 1 472 7 view .LVU75
+ 338 0046 012B     		cmp	r3, #1
+ 339 0048 EED8     		bhi	.L20
+ 474:../../Core/Src/usbd_gs_can.c **** 				ch = hcan->channels[req->wValue];
+ 340              		.loc 1 474 5 is_stmt 1 view .LVU76
+ARM GAS  /tmp/ccqiwJRX.s 			page 18
+
+
+ 341              	.LVL26:
+ 475:../../Core/Src/usbd_gs_can.c **** 
+ 342              		.loc 1 475 5 view .LVU77
+ 475:../../Core/Src/usbd_gs_can.c **** 
+ 343              		.loc 1 475 8 is_stmt 0 view .LVU78
+ 344 004a 2833     		adds	r3, r3, #40
+ 345 004c 04EB8303 		add	r3, r4, r3, lsl #2
+ 346 0050 5868     		ldr	r0, [r3, #4]
+ 347              	.LVL27:
+ 477:../../Core/Src/usbd_gs_can.c **** 
+ 348              		.loc 1 477 5 is_stmt 1 view .LVU79
+ 477:../../Core/Src/usbd_gs_can.c **** 
+ 349              		.loc 1 477 13 is_stmt 0 view .LVU80
+ 350 0052 2368     		ldr	r3, [r4]
+ 477:../../Core/Src/usbd_gs_can.c **** 
+ 351              		.loc 1 477 8 view .LVU81
+ 352 0054 B3B1     		cbz	r3, .L29
+ 481:../../Core/Src/usbd_gs_can.c **** 					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+ 353              		.loc 1 481 10 is_stmt 1 view .LVU82
+ 481:../../Core/Src/usbd_gs_can.c **** 					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+ 354              		.loc 1 481 13 is_stmt 0 view .LVU83
+ 355 0056 012B     		cmp	r3, #1
+ 356 0058 E6D1     		bne	.L20
+ 482:../../Core/Src/usbd_gs_can.c **** 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+ 357              		.loc 1 482 6 is_stmt 1 view .LVU84
+ 482:../../Core/Src/usbd_gs_can.c **** 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+ 358              		.loc 1 482 38 is_stmt 0 view .LVU85
+ 359 005a 6168     		ldr	r1, [r4, #4]
+ 482:../../Core/Src/usbd_gs_can.c **** 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+ 360              		.loc 1 482 74 view .LVU86
+ 361 005c C1F30013 		ubfx	r3, r1, #4, #1
+ 482:../../Core/Src/usbd_gs_can.c **** 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+ 362              		.loc 1 482 31 view .LVU87
+ 363 0060 84F8B630 		strb	r3, [r4, #182]
+ 483:../../Core/Src/usbd_gs_can.c **** 					can_enable(ch,
+ 364              		.loc 1 483 6 is_stmt 1 view .LVU88
+ 483:../../Core/Src/usbd_gs_can.c **** 					can_enable(ch,
+ 365              		.loc 1 483 92 is_stmt 0 view .LVU89
+ 366 0064 C1F3C013 		ubfx	r3, r1, #7, #1
+ 483:../../Core/Src/usbd_gs_can.c **** 					can_enable(ch,
+ 367              		.loc 1 483 37 view .LVU90
+ 368 0068 84F8B530 		strb	r3, [r4, #181]
+ 484:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+ 369              		.loc 1 484 6 is_stmt 1 view .LVU91
+ 370 006c C1F30023 		ubfx	r3, r1, #8, #1
+ 371 0070 0093     		str	r3, [sp]
+ 372 0072 C1F3C003 		ubfx	r3, r1, #3, #1
+ 373 0076 01F00102 		and	r2, r1, #1
+ 374 007a C1F34001 		ubfx	r1, r1, #1, #1
+ 375 007e FFF7FEFF 		bl	can_enable
+ 376              	.LVL28:
+ 484:../../Core/Src/usbd_gs_can.c **** 							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+ 377              		.loc 1 484 6 is_stmt 0 view .LVU92
+ 378 0082 D1E7     		b	.L20
+ 379              	.LVL29:
+ 380              	.L29:
+ 479:../../Core/Src/usbd_gs_can.c **** 				}
+ARM GAS  /tmp/ccqiwJRX.s 			page 19
+
+
+ 381              		.loc 1 479 6 is_stmt 1 view .LVU93
+ 382 0084 FFF7FEFF 		bl	can_disable
+ 383              	.LVL30:
+ 479:../../Core/Src/usbd_gs_can.c **** 				}
+ 384              		.loc 1 479 6 is_stmt 0 view .LVU94
+ 385 0088 CEE7     		b	.L20
+ 386              	.LVL31:
+ 387              	.L26:
+ 495:../../Core/Src/usbd_gs_can.c **** 			if (req->wValue < CAN_NUM_CHANNELS) {
+ 388              		.loc 1 495 4 is_stmt 1 view .LVU95
+ 496:../../Core/Src/usbd_gs_can.c **** 				can_set_bittiming(
+ 389              		.loc 1 496 4 view .LVU96
+ 496:../../Core/Src/usbd_gs_can.c **** 				can_set_bittiming(
+ 390              		.loc 1 496 11 is_stmt 0 view .LVU97
+ 391 008a B4F84E00 		ldrh	r0, [r4, #78]
+ 392              	.LVL32:
+ 496:../../Core/Src/usbd_gs_can.c **** 				can_set_bittiming(
+ 393              		.loc 1 496 7 view .LVU98
+ 394 008e 0128     		cmp	r0, #1
+ 395 0090 CAD8     		bhi	.L20
+ 497:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ 396              		.loc 1 497 5 is_stmt 1 view .LVU99
+ 500:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 397              		.loc 1 500 12 is_stmt 0 view .LVU100
+ 398 0092 2268     		ldr	r2, [r4]
+ 500:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 399              		.loc 1 500 31 view .LVU101
+ 400 0094 6168     		ldr	r1, [r4, #4]
+ 497:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ 401              		.loc 1 497 5 view .LVU102
+ 402 0096 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 403 0098 0A44     		add	r2, r2, r1
+ 404 009a 218A     		ldrh	r1, [r4, #16]
+ 405 009c 2830     		adds	r0, r0, #40
+ 406 009e 04EB8000 		add	r0, r4, r0, lsl #2
+ 407 00a2 4068     		ldr	r0, [r0, #4]
+ 408 00a4 257B     		ldrb	r5, [r4, #12]	@ zero_extendqisi2
+ 409 00a6 0095     		str	r5, [sp]
+ 410 00a8 D2B2     		uxtb	r2, r2
+ 411 00aa FFF7FEFF 		bl	can_set_bittiming
+ 412              	.LVL33:
+ 413 00ae BBE7     		b	.L20
+ 414              	.LVL34:
+ 415              	.L23:
+ 508:../../Core/Src/usbd_gs_can.c **** 			if (req->wValue < CAN_NUM_CHANNELS) {
+ 416              		.loc 1 508 4 is_stmt 1 view .LVU103
+ 509:../../Core/Src/usbd_gs_can.c **** 				can_set_data_bittiming(
+ 417              		.loc 1 509 4 view .LVU104
+ 509:../../Core/Src/usbd_gs_can.c **** 				can_set_data_bittiming(
+ 418              		.loc 1 509 11 is_stmt 0 view .LVU105
+ 419 00b0 B4F84E00 		ldrh	r0, [r4, #78]
+ 420              	.LVL35:
+ 509:../../Core/Src/usbd_gs_can.c **** 				can_set_data_bittiming(
+ 421              		.loc 1 509 7 view .LVU106
+ 422 00b4 0128     		cmp	r0, #1
+ 423 00b6 B7D8     		bhi	.L20
+ 510:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ARM GAS  /tmp/ccqiwJRX.s 			page 20
+
+
+ 424              		.loc 1 510 5 is_stmt 1 view .LVU107
+ 513:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 425              		.loc 1 513 12 is_stmt 0 view .LVU108
+ 426 00b8 2268     		ldr	r2, [r4]
+ 513:../../Core/Src/usbd_gs_can.c **** 					timing->phase_seg2,
+ 427              		.loc 1 513 31 view .LVU109
+ 428 00ba 6168     		ldr	r1, [r4, #4]
+ 510:../../Core/Src/usbd_gs_can.c **** 					hcan->channels[req->wValue],
+ 429              		.loc 1 510 5 view .LVU110
+ 430 00bc 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 431 00be 0A44     		add	r2, r2, r1
+ 432 00c0 218A     		ldrh	r1, [r4, #16]
+ 433 00c2 2830     		adds	r0, r0, #40
+ 434 00c4 04EB8000 		add	r0, r4, r0, lsl #2
+ 435 00c8 4068     		ldr	r0, [r0, #4]
+ 436 00ca 257B     		ldrb	r5, [r4, #12]	@ zero_extendqisi2
+ 437 00cc 0095     		str	r5, [sp]
+ 438 00ce D2B2     		uxtb	r2, r2
+ 439 00d0 FFF7FEFF 		bl	can_set_data_bittiming
+ 440              	.LVL36:
+ 441 00d4 A8E7     		b	.L20
+ 442              		.cfi_endproc
+ 443              	.LFE157:
+ 445              		.section	.text.USBD_GS_CAN_DFU_Request,"ax",%progbits
+ 446              		.align	1
+ 447              		.syntax unified
+ 448              		.thumb
+ 449              		.thumb_func
+ 451              	USBD_GS_CAN_DFU_Request:
+ 452              	.LVL37:
+ 453              	.LFB154:
+ 367:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 454              		.loc 1 367 1 is_stmt 1 view -0
+ 455              		.cfi_startproc
+ 456              		@ args = 0, pretend = 0, frame = 0
+ 457              		@ frame_needed = 0, uses_anonymous_args = 0
+ 367:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 458              		.loc 1 367 1 is_stmt 0 view .LVU112
+ 459 0000 08B5     		push	{r3, lr}
+ 460              	.LCFI6:
+ 461              		.cfi_def_cfa_offset 8
+ 462              		.cfi_offset 3, -8
+ 463              		.cfi_offset 14, -4
+ 368:../../Core/Src/usbd_gs_can.c **** 	switch (req->bRequest) {
+ 464              		.loc 1 368 2 is_stmt 1 view .LVU113
+ 368:../../Core/Src/usbd_gs_can.c **** 	switch (req->bRequest) {
+ 465              		.loc 1 368 29 is_stmt 0 view .LVU114
+ 466 0002 D0F8BC32 		ldr	r3, [r0, #700]
+ 467              	.LVL38:
+ 369:../../Core/Src/usbd_gs_can.c **** 		case 0: // DETACH request
+ 468              		.loc 1 369 2 is_stmt 1 view .LVU115
+ 369:../../Core/Src/usbd_gs_can.c **** 		case 0: // DETACH request
+ 469              		.loc 1 369 13 is_stmt 0 view .LVU116
+ 470 0006 4A78     		ldrb	r2, [r1, #1]	@ zero_extendqisi2
+ 369:../../Core/Src/usbd_gs_can.c **** 		case 0: // DETACH request
+ 471              		.loc 1 369 2 view .LVU117
+ 472 0008 22B1     		cbz	r2, .L31
+ARM GAS  /tmp/ccqiwJRX.s 			page 21
+
+
+ 473 000a 032A     		cmp	r2, #3
+ 474 000c 07D0     		beq	.L32
+ 385:../../Core/Src/usbd_gs_can.c **** 
+ 475              		.loc 1 385 4 is_stmt 1 view .LVU118
+ 476 000e FFF7FEFF 		bl	USBD_CtlError
+ 477              	.LVL39:
+ 385:../../Core/Src/usbd_gs_can.c **** 
+ 478              		.loc 1 385 4 is_stmt 0 view .LVU119
+ 479 0012 02E0     		b	.L34
+ 480              	.LVL40:
+ 481              	.L31:
+ 371:../../Core/Src/usbd_gs_can.c **** 			break;
+ 482              		.loc 1 371 4 is_stmt 1 view .LVU120
+ 371:../../Core/Src/usbd_gs_can.c **** 			break;
+ 483              		.loc 1 371 31 is_stmt 0 view .LVU121
+ 484 0014 0122     		movs	r2, #1
+ 485 0016 83F8B420 		strb	r2, [r3, #180]
+ 372:../../Core/Src/usbd_gs_can.c **** 
+ 486              		.loc 1 372 4 is_stmt 1 view .LVU122
+ 487              	.LVL41:
+ 488              	.L34:
+ 388:../../Core/Src/usbd_gs_can.c **** }
+ 489              		.loc 1 388 2 view .LVU123
+ 389:../../Core/Src/usbd_gs_can.c **** 
+ 490              		.loc 1 389 1 is_stmt 0 view .LVU124
+ 491 001a 0020     		movs	r0, #0
+ 492 001c 08BD     		pop	{r3, pc}
+ 493              	.LVL42:
+ 494              	.L32:
+ 375:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
+ 495              		.loc 1 375 4 is_stmt 1 view .LVU125
+ 375:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
+ 496              		.loc 1 375 21 is_stmt 0 view .LVU126
+ 497 001e 0022     		movs	r2, #0
+ 498 0020 1A70     		strb	r2, [r3]
+ 376:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[2] = 0x00;
+ 499              		.loc 1 376 4 is_stmt 1 view .LVU127
+ 376:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[2] = 0x00;
+ 500              		.loc 1 376 21 is_stmt 0 view .LVU128
+ 501 0022 5A70     		strb	r2, [r3, #1]
+ 377:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[3] = 0x00;
+ 502              		.loc 1 377 4 is_stmt 1 view .LVU129
+ 377:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[3] = 0x00;
+ 503              		.loc 1 377 21 is_stmt 0 view .LVU130
+ 504 0024 9A70     		strb	r2, [r3, #2]
+ 378:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[4] = 0x00; // bState: appIDLE
+ 505              		.loc 1 378 4 is_stmt 1 view .LVU131
+ 378:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[4] = 0x00; // bState: appIDLE
+ 506              		.loc 1 378 21 is_stmt 0 view .LVU132
+ 507 0026 DA70     		strb	r2, [r3, #3]
+ 379:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
+ 508              		.loc 1 379 4 is_stmt 1 view .LVU133
+ 379:../../Core/Src/usbd_gs_can.c **** 			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
+ 509              		.loc 1 379 21 is_stmt 0 view .LVU134
+ 510 0028 1A71     		strb	r2, [r3, #4]
+ 380:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
+ 511              		.loc 1 380 4 is_stmt 1 view .LVU135
+ARM GAS  /tmp/ccqiwJRX.s 			page 22
+
+
+ 380:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
+ 512              		.loc 1 380 21 is_stmt 0 view .LVU136
+ 513 002a FF22     		movs	r2, #255
+ 514 002c 5A71     		strb	r2, [r3, #5]
+ 381:../../Core/Src/usbd_gs_can.c **** 			break;
+ 515              		.loc 1 381 4 is_stmt 1 view .LVU137
+ 516 002e 0622     		movs	r2, #6
+ 517 0030 1946     		mov	r1, r3
+ 518              	.LVL43:
+ 381:../../Core/Src/usbd_gs_can.c **** 			break;
+ 519              		.loc 1 381 4 is_stmt 0 view .LVU138
+ 520 0032 FFF7FEFF 		bl	USBD_CtlSendData
+ 521              	.LVL44:
+ 382:../../Core/Src/usbd_gs_can.c **** 
+ 522              		.loc 1 382 4 is_stmt 1 view .LVU139
+ 523 0036 F0E7     		b	.L34
+ 524              		.cfi_endproc
+ 525              	.LFE154:
+ 527              		.section	.text.USBD_GS_CAN_Config_Request,"ax",%progbits
+ 528              		.align	1
+ 529              		.syntax unified
+ 530              		.thumb
+ 531              		.thumb_func
+ 533              	USBD_GS_CAN_Config_Request:
+ 534              	.LVL45:
+ 535              	.LFB153:
+ 316:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 536              		.loc 1 316 1 view -0
+ 537              		.cfi_startproc
+ 538              		@ args = 0, pretend = 0, frame = 0
+ 539              		@ frame_needed = 0, uses_anonymous_args = 0
+ 316:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 540              		.loc 1 316 1 is_stmt 0 view .LVU141
+ 541 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 542              	.LCFI7:
+ 543              		.cfi_def_cfa_offset 24
+ 544              		.cfi_offset 4, -24
+ 545              		.cfi_offset 5, -20
+ 546              		.cfi_offset 6, -16
+ 547              		.cfi_offset 7, -12
+ 548              		.cfi_offset 8, -8
+ 549              		.cfi_offset 14, -4
+ 550 0004 0646     		mov	r6, r0
+ 551 0006 0C46     		mov	r4, r1
+ 317:../../Core/Src/usbd_gs_can.c **** 	uint32_t d32;
+ 552              		.loc 1 317 2 is_stmt 1 view .LVU142
+ 317:../../Core/Src/usbd_gs_can.c **** 	uint32_t d32;
+ 553              		.loc 1 317 29 is_stmt 0 view .LVU143
+ 554 0008 D0F8BC72 		ldr	r7, [r0, #700]
+ 555              	.LVL46:
+ 318:../../Core/Src/usbd_gs_can.c **** 
+ 556              		.loc 1 318 2 is_stmt 1 view .LVU144
+ 320:../../Core/Src/usbd_gs_can.c **** 
+ 557              		.loc 1 320 2 view .LVU145
+ 320:../../Core/Src/usbd_gs_can.c **** 
+ 558              		.loc 1 320 13 is_stmt 0 view .LVU146
+ 559 000c 4B78     		ldrb	r3, [r1, #1]	@ zero_extendqisi2
+ARM GAS  /tmp/ccqiwJRX.s 			page 23
+
+
+ 320:../../Core/Src/usbd_gs_can.c **** 
+ 560              		.loc 1 320 2 view .LVU147
+ 561 000e 0D2B     		cmp	r3, #13
+ 562 0010 5CD8     		bhi	.L38
+ 563 0012 DFE803F0 		tbb	[pc, r3]
+ 564              	.L40:
+ 565 0016 07       		.byte	(.L41-.L40)/2
+ 566 0017 07       		.byte	(.L41-.L40)/2
+ 567 0018 07       		.byte	(.L41-.L40)/2
+ 568 0019 5B       		.byte	(.L38-.L40)/2
+ 569 001a 27       		.byte	(.L45-.L40)/2
+ 570 001b 1C       		.byte	(.L44-.L40)/2
+ 571 001c 53       		.byte	(.L43-.L40)/2
+ 572 001d 07       		.byte	(.L41-.L40)/2
+ 573 001e 5B       		.byte	(.L38-.L40)/2
+ 574 001f 07       		.byte	(.L41-.L40)/2
+ 575 0020 07       		.byte	(.L41-.L40)/2
+ 576 0021 48       		.byte	(.L42-.L40)/2
+ 577 0022 07       		.byte	(.L41-.L40)/2
+ 578 0023 12       		.byte	(.L39-.L40)/2
+ 579              		.p2align 1
+ 580              	.L41:
+ 329:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+ 581              		.loc 1 329 4 is_stmt 1 view .LVU148
+ 329:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+ 582              		.loc 1 329 29 is_stmt 0 view .LVU149
+ 583 0024 07F14C03 		add	r3, r7, #76
+ 584 0028 0868     		ldr	r0, [r1]	@ unaligned
+ 585              	.LVL47:
+ 329:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+ 586              		.loc 1 329 29 view .LVU150
+ 587 002a 4968     		ldr	r1, [r1, #4]	@ unaligned
+ 588              	.LVL48:
+ 329:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+ 589              		.loc 1 329 29 view .LVU151
+ 590 002c 03C3     		stmia	r3!, {r0, r1}
+ 330:../../Core/Src/usbd_gs_can.c **** 			break;
+ 591              		.loc 1 330 4 is_stmt 1 view .LVU152
+ 592 002e E288     		ldrh	r2, [r4, #6]
+ 593 0030 3946     		mov	r1, r7
+ 594 0032 3046     		mov	r0, r6
+ 595 0034 FFF7FEFF 		bl	USBD_CtlPrepareRx
+ 596              	.LVL49:
+ 331:../../Core/Src/usbd_gs_can.c **** 
+ 597              		.loc 1 331 4 view .LVU153
+ 598 0038 32E0     		b	.L46
+ 599              	.LVL50:
+ 600              	.L39:
+ 334:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+ 601              		.loc 1 334 4 view .LVU154
+ 334:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+ 602              		.loc 1 334 20 is_stmt 0 view .LVU155
+ 603 003a 8878     		ldrb	r0, [r1, #2]	@ zero_extendqisi2
+ 604              	.LVL51:
+ 334:../../Core/Src/usbd_gs_can.c **** 			memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+ 605              		.loc 1 334 20 view .LVU156
+ 606 003c FFF7FEFF 		bl	can_get_termination
+ARM GAS  /tmp/ccqiwJRX.s 			page 24
+
+
+ 607              	.LVL52:
+ 335:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 608              		.loc 1 335 4 is_stmt 1 view .LVU157
+ 609 0040 3860     		str	r0, [r7]	@ unaligned
+ 336:../../Core/Src/usbd_gs_can.c **** 			break;
+ 610              		.loc 1 336 4 view .LVU158
+ 611 0042 E288     		ldrh	r2, [r4, #6]
+ 612 0044 3946     		mov	r1, r7
+ 613 0046 3046     		mov	r0, r6
+ 614              	.LVL53:
+ 336:../../Core/Src/usbd_gs_can.c **** 			break;
+ 615              		.loc 1 336 4 is_stmt 0 view .LVU159
+ 616 0048 FFF7FEFF 		bl	USBD_CtlSendData
+ 617              	.LVL54:
+ 337:../../Core/Src/usbd_gs_can.c **** 
+ 618              		.loc 1 337 4 is_stmt 1 view .LVU160
+ 619 004c 28E0     		b	.L46
+ 620              	.LVL55:
+ 621              	.L44:
+ 340:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 622              		.loc 1 340 4 view .LVU161
+ 623 004e 214B     		ldr	r3, .L49
+ 624 0050 07CB     		ldmia	r3!, {r0, r1, r2}
+ 625              	.LVL56:
+ 340:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 626              		.loc 1 340 4 is_stmt 0 view .LVU162
+ 627 0052 3860     		str	r0, [r7]	@ unaligned
+ 628 0054 7960     		str	r1, [r7, #4]	@ unaligned
+ 629 0056 BA60     		str	r2, [r7, #8]	@ unaligned
+ 341:../../Core/Src/usbd_gs_can.c **** 			break;
+ 630              		.loc 1 341 4 is_stmt 1 view .LVU163
+ 631 0058 E288     		ldrh	r2, [r4, #6]
+ 632 005a 3946     		mov	r1, r7
+ 633 005c 3046     		mov	r0, r6
+ 634 005e FFF7FEFF 		bl	USBD_CtlSendData
+ 635              	.LVL57:
+ 342:../../Core/Src/usbd_gs_can.c **** 
+ 636              		.loc 1 342 4 view .LVU164
+ 637 0062 1DE0     		b	.L46
+ 638              	.LVL58:
+ 639              	.L45:
+ 345:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 640              		.loc 1 345 4 view .LVU165
+ 641 0064 1C4D     		ldr	r5, .L49+4
+ 642 0066 BC46     		mov	ip, r7
+ 643 0068 05F12008 		add	r8, r5, #32
+ 644              	.LVL59:
+ 645              	.L47:
+ 345:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 646              		.loc 1 345 4 is_stmt 0 view .LVU166
+ 647 006c AE46     		mov	lr, r5
+ 648 006e BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
+ 649 0072 CCF80000 		str	r0, [ip]	@ unaligned
+ 650 0076 CCF80410 		str	r1, [ip, #4]	@ unaligned
+ 651 007a CCF80820 		str	r2, [ip, #8]	@ unaligned
+ 652 007e CCF80C30 		str	r3, [ip, #12]	@ unaligned
+ 653 0082 7546     		mov	r5, lr
+ARM GAS  /tmp/ccqiwJRX.s 			page 25
+
+
+ 654 0084 0CF1100C 		add	ip, ip, #16
+ 655 0088 C645     		cmp	lr, r8
+ 656 008a EFD1     		bne	.L47
+ 657 008c 03CD     		ldmia	r5!, {r0, r1}
+ 658 008e CCF80000 		str	r0, [ip]	@ unaligned
+ 659 0092 CCF80410 		str	r1, [ip, #4]	@ unaligned
+ 346:../../Core/Src/usbd_gs_can.c **** 			break;
+ 660              		.loc 1 346 4 is_stmt 1 view .LVU167
+ 661 0096 E288     		ldrh	r2, [r4, #6]
+ 662 0098 3946     		mov	r1, r7
+ 663 009a 3046     		mov	r0, r6
+ 664 009c FFF7FEFF 		bl	USBD_CtlSendData
+ 665              	.LVL60:
+ 347:../../Core/Src/usbd_gs_can.c **** 
+ 666              		.loc 1 347 4 view .LVU168
+ 667              	.L46:
+ 363:../../Core/Src/usbd_gs_can.c **** }
+ 668              		.loc 1 363 2 view .LVU169
+ 364:../../Core/Src/usbd_gs_can.c **** 
+ 669              		.loc 1 364 1 is_stmt 0 view .LVU170
+ 670 00a0 0020     		movs	r0, #0
+ 671 00a2 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 672              	.LVL61:
+ 673              	.L42:
+ 350:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 674              		.loc 1 350 4 is_stmt 1 view .LVU171
+ 675 00a6 4822     		movs	r2, #72
+ 676 00a8 0C49     		ldr	r1, .L49+8
+ 677              	.LVL62:
+ 350:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 678              		.loc 1 350 4 is_stmt 0 view .LVU172
+ 679 00aa 3846     		mov	r0, r7
+ 680              	.LVL63:
+ 350:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+ 681              		.loc 1 350 4 view .LVU173
+ 682 00ac FFF7FEFF 		bl	memcpy
+ 683              	.LVL64:
+ 351:../../Core/Src/usbd_gs_can.c **** 			break;
+ 684              		.loc 1 351 4 is_stmt 1 view .LVU174
+ 685 00b0 E288     		ldrh	r2, [r4, #6]
+ 686 00b2 3946     		mov	r1, r7
+ 687 00b4 3046     		mov	r0, r6
+ 688 00b6 FFF7FEFF 		bl	USBD_CtlSendData
+ 689              	.LVL65:
+ 352:../../Core/Src/usbd_gs_can.c **** 
+ 690              		.loc 1 352 4 view .LVU175
+ 691 00ba F1E7     		b	.L46
+ 692              	.LVL66:
+ 693              	.L43:
+ 355:../../Core/Src/usbd_gs_can.c **** 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
+ 694              		.loc 1 355 4 view .LVU176
+ 695 00bc D7F8B830 		ldr	r3, [r7, #184]	@ unaligned
+ 696 00c0 3B60     		str	r3, [r7]	@ unaligned
+ 356:../../Core/Src/usbd_gs_can.c **** 			break;
+ 697              		.loc 1 356 4 view .LVU177
+ 698 00c2 0422     		movs	r2, #4
+ 699 00c4 3946     		mov	r1, r7
+ARM GAS  /tmp/ccqiwJRX.s 			page 26
+
+
+ 700              	.LVL67:
+ 356:../../Core/Src/usbd_gs_can.c **** 			break;
+ 701              		.loc 1 356 4 is_stmt 0 view .LVU178
+ 702 00c6 FFF7FEFF 		bl	USBD_CtlSendData
+ 703              	.LVL68:
+ 357:../../Core/Src/usbd_gs_can.c **** 
+ 704              		.loc 1 357 4 is_stmt 1 view .LVU179
+ 705 00ca E9E7     		b	.L46
+ 706              	.LVL69:
+ 707              	.L38:
+ 360:../../Core/Src/usbd_gs_can.c **** 	}
+ 708              		.loc 1 360 4 view .LVU180
+ 709 00cc FFF7FEFF 		bl	USBD_CtlError
+ 710              	.LVL70:
+ 360:../../Core/Src/usbd_gs_can.c **** 	}
+ 711              		.loc 1 360 4 is_stmt 0 view .LVU181
+ 712 00d0 E6E7     		b	.L46
+ 713              	.L50:
+ 714 00d2 00BF     		.align	2
+ 715              	.L49:
+ 716 00d4 00000000 		.word	.LANCHOR1
+ 717 00d8 00000000 		.word	.LANCHOR2
+ 718 00dc 00000000 		.word	.LANCHOR3
+ 719              		.cfi_endproc
+ 720              	.LFE153:
+ 722              		.section	.text.USBD_GS_CAN_Vendor_Request,"ax",%progbits
+ 723              		.align	1
+ 724              		.syntax unified
+ 725              		.thumb
+ 726              		.thumb_func
+ 728              	USBD_GS_CAN_Vendor_Request:
+ 729              	.LVL71:
+ 730              	.LFB155:
+ 392:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_rcpt = req->bmRequest & 0x1F;
+ 731              		.loc 1 392 1 is_stmt 1 view -0
+ 732              		.cfi_startproc
+ 733              		@ args = 0, pretend = 0, frame = 0
+ 734              		@ frame_needed = 0, uses_anonymous_args = 0
+ 392:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_rcpt = req->bmRequest & 0x1F;
+ 735              		.loc 1 392 1 is_stmt 0 view .LVU183
+ 736 0000 08B5     		push	{r3, lr}
+ 737              	.LCFI8:
+ 738              		.cfi_def_cfa_offset 8
+ 739              		.cfi_offset 3, -8
+ 740              		.cfi_offset 14, -4
+ 393:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_type = (req->bmRequest >> 5) & 0x03;
+ 741              		.loc 1 393 2 is_stmt 1 view .LVU184
+ 393:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_type = (req->bmRequest >> 5) & 0x03;
+ 742              		.loc 1 393 24 is_stmt 0 view .LVU185
+ 743 0002 0B78     		ldrb	r3, [r1]	@ zero_extendqisi2
+ 393:../../Core/Src/usbd_gs_can.c **** 	uint8_t req_type = (req->bmRequest >> 5) & 0x03;
+ 744              		.loc 1 393 10 view .LVU186
+ 745 0004 03F01F02 		and	r2, r3, #31
+ 746              	.LVL72:
+ 394:../../Core/Src/usbd_gs_can.c **** 
+ 747              		.loc 1 394 2 is_stmt 1 view .LVU187
+ 394:../../Core/Src/usbd_gs_can.c **** 
+ARM GAS  /tmp/ccqiwJRX.s 			page 27
+
+
+ 748              		.loc 1 394 10 is_stmt 0 view .LVU188
+ 749 0008 C3F34113 		ubfx	r3, r3, #5, #2
+ 750              	.LVL73:
+ 396:../../Core/Src/usbd_gs_can.c **** 		(req_type == 0x01)// class request
+ 751              		.loc 1 396 2 is_stmt 1 view .LVU189
+ 396:../../Core/Src/usbd_gs_can.c **** 		(req_type == 0x01)// class request
+ 752              		.loc 1 396 5 is_stmt 0 view .LVU190
+ 753 000c 012B     		cmp	r3, #1
+ 754 000e 08BF     		it	eq
+ 755 0010 012A     		cmpeq	r2, #1
+ 756 0012 02D1     		bne	.L52
+ 399:../../Core/Src/usbd_gs_can.c **** 		) {
+ 757              		.loc 1 399 12 view .LVU191
+ 758 0014 8B88     		ldrh	r3, [r1, #4]
+ 759              	.LVL74:
+ 399:../../Core/Src/usbd_gs_can.c **** 		) {
+ 760              		.loc 1 399 5 view .LVU192
+ 761 0016 012B     		cmp	r3, #1
+ 762 0018 02D0     		beq	.L55
+ 763              	.L52:
+ 403:../../Core/Src/usbd_gs_can.c **** 	}
+ 764              		.loc 1 403 3 is_stmt 1 view .LVU193
+ 403:../../Core/Src/usbd_gs_can.c **** 	}
+ 765              		.loc 1 403 10 is_stmt 0 view .LVU194
+ 766 001a FFF7FEFF 		bl	USBD_GS_CAN_Config_Request
+ 767              	.LVL75:
+ 768              	.L53:
+ 405:../../Core/Src/usbd_gs_can.c **** 
+ 769              		.loc 1 405 1 view .LVU195
+ 770 001e 08BD     		pop	{r3, pc}
+ 771              	.LVL76:
+ 772              	.L55:
+ 401:../../Core/Src/usbd_gs_can.c **** 	} else {
+ 773              		.loc 1 401 3 is_stmt 1 view .LVU196
+ 401:../../Core/Src/usbd_gs_can.c **** 	} else {
+ 774              		.loc 1 401 10 is_stmt 0 view .LVU197
+ 775 0020 FFF7FEFF 		bl	USBD_GS_CAN_DFU_Request
+ 776              	.LVL77:
+ 401:../../Core/Src/usbd_gs_can.c **** 	} else {
+ 777              		.loc 1 401 10 view .LVU198
+ 778 0024 FBE7     		b	.L53
+ 779              		.cfi_endproc
+ 780              	.LFE155:
+ 782              		.section	.text.USBD_GS_CAN_Setup,"ax",%progbits
+ 783              		.align	1
+ 784              		.syntax unified
+ 785              		.thumb
+ 786              		.thumb_func
+ 788              	USBD_GS_CAN_Setup:
+ 789              	.LVL78:
+ 790              	.LFB156:
+ 408:../../Core/Src/usbd_gs_can.c **** 	static uint8_t ifalt = 0;
+ 791              		.loc 1 408 1 is_stmt 1 view -0
+ 792              		.cfi_startproc
+ 793              		@ args = 0, pretend = 0, frame = 0
+ 794              		@ frame_needed = 0, uses_anonymous_args = 0
+ 408:../../Core/Src/usbd_gs_can.c **** 	static uint8_t ifalt = 0;
+ARM GAS  /tmp/ccqiwJRX.s 			page 28
+
+
+ 795              		.loc 1 408 1 is_stmt 0 view .LVU200
+ 796 0000 10B5     		push	{r4, lr}
+ 797              	.LCFI9:
+ 798              		.cfi_def_cfa_offset 8
+ 799              		.cfi_offset 4, -8
+ 800              		.cfi_offset 14, -4
+ 409:../../Core/Src/usbd_gs_can.c **** 
+ 801              		.loc 1 409 2 is_stmt 1 view .LVU201
+ 411:../../Core/Src/usbd_gs_can.c **** 
+ 802              		.loc 1 411 2 view .LVU202
+ 411:../../Core/Src/usbd_gs_can.c **** 
+ 803              		.loc 1 411 13 is_stmt 0 view .LVU203
+ 804 0002 0C78     		ldrb	r4, [r1]	@ zero_extendqisi2
+ 805 0004 04F06004 		and	r4, r4, #96
+ 411:../../Core/Src/usbd_gs_can.c **** 
+ 806              		.loc 1 411 2 view .LVU204
+ 807 0008 202C     		cmp	r4, #32
+ 808 000a 05D0     		beq	.L57
+ 809 000c 402C     		cmp	r4, #64
+ 810 000e 03D0     		beq	.L57
+ 811 0010 34B1     		cbz	r4, .L58
+ 812 0012 0024     		movs	r4, #0
+ 813              	.LVL79:
+ 814              	.L59:
+ 433:../../Core/Src/usbd_gs_can.c **** 
+ 815              		.loc 1 433 1 view .LVU205
+ 816 0014 2046     		mov	r0, r4
+ 817 0016 10BD     		pop	{r4, pc}
+ 818              	.LVL80:
+ 819              	.L57:
+ 415:../../Core/Src/usbd_gs_can.c **** 
+ 820              		.loc 1 415 4 is_stmt 1 view .LVU206
+ 415:../../Core/Src/usbd_gs_can.c **** 
+ 821              		.loc 1 415 11 is_stmt 0 view .LVU207
+ 822 0018 FFF7FEFF 		bl	USBD_GS_CAN_Vendor_Request
+ 823              	.LVL81:
+ 415:../../Core/Src/usbd_gs_can.c **** 
+ 824              		.loc 1 415 11 view .LVU208
+ 825 001c 0446     		mov	r4, r0
+ 826 001e F9E7     		b	.L59
+ 827              	.LVL82:
+ 828              	.L58:
+ 418:../../Core/Src/usbd_gs_can.c **** 				case USB_REQ_GET_INTERFACE:
+ 829              		.loc 1 418 4 is_stmt 1 view .LVU209
+ 418:../../Core/Src/usbd_gs_can.c **** 				case USB_REQ_GET_INTERFACE:
+ 830              		.loc 1 418 15 is_stmt 0 view .LVU210
+ 831 0020 4B78     		ldrb	r3, [r1, #1]	@ zero_extendqisi2
+ 832 0022 0A2B     		cmp	r3, #10
+ 833 0024 F6D1     		bne	.L59
+ 420:../../Core/Src/usbd_gs_can.c **** 					break;
+ 834              		.loc 1 420 6 is_stmt 1 view .LVU211
+ 835 0026 0122     		movs	r2, #1
+ 836 0028 0149     		ldr	r1, .L61
+ 837              	.LVL83:
+ 420:../../Core/Src/usbd_gs_can.c **** 					break;
+ 838              		.loc 1 420 6 is_stmt 0 view .LVU212
+ 839 002a FFF7FEFF 		bl	USBD_CtlSendData
+ARM GAS  /tmp/ccqiwJRX.s 			page 29
+
+
+ 840              	.LVL84:
+ 421:../../Core/Src/usbd_gs_can.c **** 
+ 841              		.loc 1 421 6 is_stmt 1 view .LVU213
+ 842 002e F1E7     		b	.L59
+ 843              	.L62:
+ 844              		.align	2
+ 845              	.L61:
+ 846 0030 00000000 		.word	.LANCHOR4
+ 847              		.cfi_endproc
+ 848              	.LFE156:
+ 850              		.section	.text.USBD_GS_CAN_DeInit,"ax",%progbits
+ 851              		.align	1
+ 852              		.syntax unified
+ 853              		.thumb
+ 854              		.thumb_func
+ 856              	USBD_GS_CAN_DeInit:
+ 857              	.LVL85:
+ 858              	.LFB152:
+ 306:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 859              		.loc 1 306 1 view -0
+ 860              		.cfi_startproc
+ 861              		@ args = 0, pretend = 0, frame = 0
+ 862              		@ frame_needed = 0, uses_anonymous_args = 0
+ 306:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 863              		.loc 1 306 1 is_stmt 0 view .LVU215
+ 864 0000 10B5     		push	{r4, lr}
+ 865              	.LCFI10:
+ 866              		.cfi_def_cfa_offset 8
+ 867              		.cfi_offset 4, -8
+ 868              		.cfi_offset 14, -4
+ 869 0002 0446     		mov	r4, r0
+ 307:../../Core/Src/usbd_gs_can.c **** 
+ 870              		.loc 1 307 2 is_stmt 1 view .LVU216
+ 309:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
+ 871              		.loc 1 309 2 view .LVU217
+ 872 0004 8121     		movs	r1, #129
+ 873              	.LVL86:
+ 309:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
+ 874              		.loc 1 309 2 is_stmt 0 view .LVU218
+ 875 0006 FFF7FEFF 		bl	USBD_LL_CloseEP
+ 876              	.LVL87:
+ 310:../../Core/Src/usbd_gs_can.c **** 
+ 877              		.loc 1 310 2 is_stmt 1 view .LVU219
+ 878 000a 0221     		movs	r1, #2
+ 879 000c 2046     		mov	r0, r4
+ 880 000e FFF7FEFF 		bl	USBD_LL_CloseEP
+ 881              	.LVL88:
+ 312:../../Core/Src/usbd_gs_can.c **** }
+ 882              		.loc 1 312 2 view .LVU220
+ 313:../../Core/Src/usbd_gs_can.c **** 
+ 883              		.loc 1 313 1 is_stmt 0 view .LVU221
+ 884 0012 0020     		movs	r0, #0
+ 885 0014 10BD     		pop	{r4, pc}
+ 313:../../Core/Src/usbd_gs_can.c **** 
+ 886              		.loc 1 313 1 view .LVU222
+ 887              		.cfi_endproc
+ 888              	.LFE152:
+ARM GAS  /tmp/ccqiwJRX.s 			page 30
+
+
+ 890              		.section	.text.USBD_GS_CAN_Start,"ax",%progbits
+ 891              		.align	1
+ 892              		.syntax unified
+ 893              		.thumb
+ 894              		.thumb_func
+ 896              	USBD_GS_CAN_Start:
+ 897              	.LVL89:
+ 898              	.LFB151:
+ 293:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 899              		.loc 1 293 1 is_stmt 1 view -0
+ 900              		.cfi_startproc
+ 901              		@ args = 0, pretend = 0, frame = 0
+ 902              		@ frame_needed = 0, uses_anonymous_args = 0
+ 293:../../Core/Src/usbd_gs_can.c **** 	UNUSED(cfgidx);
+ 903              		.loc 1 293 1 is_stmt 0 view .LVU224
+ 904 0000 10B5     		push	{r4, lr}
+ 905              	.LCFI11:
+ 906              		.cfi_def_cfa_offset 8
+ 907              		.cfi_offset 4, -8
+ 908              		.cfi_offset 14, -4
+ 909 0002 0446     		mov	r4, r0
+ 294:../../Core/Src/usbd_gs_can.c **** 
+ 910              		.loc 1 294 2 is_stmt 1 view .LVU225
+ 296:../../Core/Src/usbd_gs_can.c **** 
+ 911              		.loc 1 296 2 view .LVU226
+ 298:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+ 912              		.loc 1 298 2 view .LVU227
+ 913 0004 4023     		movs	r3, #64
+ 914 0006 0222     		movs	r2, #2
+ 915 0008 8121     		movs	r1, #129
+ 916              	.LVL90:
+ 298:../../Core/Src/usbd_gs_can.c **** 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+ 917              		.loc 1 298 2 is_stmt 0 view .LVU228
+ 918 000a FFF7FEFF 		bl	USBD_LL_OpenEP
+ 919              	.LVL91:
+ 299:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_PrepareReceive(pdev);
+ 920              		.loc 1 299 2 is_stmt 1 view .LVU229
+ 921 000e 4023     		movs	r3, #64
+ 922 0010 0222     		movs	r2, #2
+ 923 0012 1146     		mov	r1, r2
+ 924 0014 2046     		mov	r0, r4
+ 925 0016 FFF7FEFF 		bl	USBD_LL_OpenEP
+ 926              	.LVL92:
+ 300:../../Core/Src/usbd_gs_can.c **** 
+ 927              		.loc 1 300 2 view .LVU230
+ 928              	.LBB4:
+ 929              	.LBI4:
+ 286:../../Core/Src/usbd_gs_can.c **** {
+ 930              		.loc 1 286 23 view .LVU231
+ 931              	.LBB5:
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 932              		.loc 1 288 2 view .LVU232
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 933              		.loc 1 288 29 is_stmt 0 view .LVU233
+ 934 001a D4F8BC22 		ldr	r2, [r4, #700]
+ 935              	.LVL93:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ARM GAS  /tmp/ccqiwJRX.s 			page 31
+
+
+ 936              		.loc 1 289 2 is_stmt 1 view .LVU234
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 937              		.loc 1 289 9 is_stmt 0 view .LVU235
+ 938 001e 5023     		movs	r3, #80
+ 939 0020 5432     		adds	r2, r2, #84
+ 940              	.LVL94:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 941              		.loc 1 289 9 view .LVU236
+ 942 0022 0221     		movs	r1, #2
+ 943 0024 2046     		mov	r0, r4
+ 944 0026 FFF7FEFF 		bl	USBD_LL_PrepareReceive
+ 945              	.LVL95:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 946              		.loc 1 289 9 view .LVU237
+ 947              	.LBE5:
+ 948              	.LBE4:
+ 302:../../Core/Src/usbd_gs_can.c **** }
+ 949              		.loc 1 302 2 is_stmt 1 view .LVU238
+ 303:../../Core/Src/usbd_gs_can.c **** 
+ 950              		.loc 1 303 1 is_stmt 0 view .LVU239
+ 951 002a 0020     		movs	r0, #0
+ 952 002c 10BD     		pop	{r4, pc}
+ 303:../../Core/Src/usbd_gs_can.c **** 
+ 953              		.loc 1 303 1 view .LVU240
+ 954              		.cfi_endproc
+ 955              	.LFE151:
+ 957              		.section	.text.USBD_GS_CAN_DataOut,"ax",%progbits
+ 958              		.align	1
+ 959              		.syntax unified
+ 960              		.thumb
+ 961              		.thumb_func
+ 963              	USBD_GS_CAN_DataOut:
+ 964              	.LVL96:
+ 965              	.LFB159:
+ 537:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 966              		.loc 1 537 77 is_stmt 1 view -0
+ 967              		.cfi_startproc
+ 968              		@ args = 0, pretend = 0, frame = 0
+ 969              		@ frame_needed = 0, uses_anonymous_args = 0
+ 537:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 970              		.loc 1 537 77 is_stmt 0 view .LVU242
+ 971 0000 38B5     		push	{r3, r4, r5, lr}
+ 972              	.LCFI12:
+ 973              		.cfi_def_cfa_offset 16
+ 974              		.cfi_offset 3, -16
+ 975              		.cfi_offset 4, -12
+ 976              		.cfi_offset 5, -8
+ 977              		.cfi_offset 14, -4
+ 978 0002 0446     		mov	r4, r0
+ 538:../../Core/Src/usbd_gs_can.c **** 
+ 979              		.loc 1 538 2 is_stmt 1 view .LVU243
+ 538:../../Core/Src/usbd_gs_can.c **** 
+ 980              		.loc 1 538 29 is_stmt 0 view .LVU244
+ 981 0004 D0F8BC52 		ldr	r5, [r0, #700]
+ 982              	.LVL97:
+ 540:../../Core/Src/usbd_gs_can.c **** #if defined(CANFD_FEATURE_ENABLED)
+ 983              		.loc 1 540 2 is_stmt 1 view .LVU245
+ARM GAS  /tmp/ccqiwJRX.s 			page 32
+
+
+ 540:../../Core/Src/usbd_gs_can.c **** #if defined(CANFD_FEATURE_ENABLED)
+ 984              		.loc 1 540 19 is_stmt 0 view .LVU246
+ 985 0008 FFF7FEFF 		bl	USBD_LL_GetRxDataSize
+ 986              	.LVL98:
+ 542:../../Core/Src/usbd_gs_can.c **** #else
+ 987              		.loc 1 542 2 is_stmt 1 view .LVU247
+ 542:../../Core/Src/usbd_gs_can.c **** #else
+ 988              		.loc 1 542 5 is_stmt 0 view .LVU248
+ 989 000c 1328     		cmp	r0, #19
+ 990 000e 12D9     		bls	.L71
+ 557:../../Core/Src/usbd_gs_can.c **** #endif
+ 991              		.loc 1 557 2 is_stmt 1 view .LVU249
+ 992 0010 0023     		movs	r3, #0
+ 993 0012 1A46     		mov	r2, r3
+ 994 0014 05F15401 		add	r1, r5, #84
+ 995 0018 0B48     		ldr	r0, .L72
+ 996              	.LVL99:
+ 557:../../Core/Src/usbd_gs_can.c **** #endif
+ 997              		.loc 1 557 2 is_stmt 0 view .LVU250
+ 998 001a D0F8AC00 		ldr	r0, [r0, #172]
+ 999 001e FFF7FEFF 		bl	xQueueGenericSendFromISR
+ 1000              	.LVL100:
+ 559:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 1001              		.loc 1 559 2 is_stmt 1 view .LVU251
+ 1002              	.LBB10:
+ 1003              	.LBI10:
+ 286:../../Core/Src/usbd_gs_can.c **** {
+ 1004              		.loc 1 286 23 view .LVU252
+ 1005              	.LBB11:
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 1006              		.loc 1 288 2 view .LVU253
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 1007              		.loc 1 288 29 is_stmt 0 view .LVU254
+ 1008 0022 D4F8BC22 		ldr	r2, [r4, #700]
+ 1009              	.LVL101:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1010              		.loc 1 289 2 is_stmt 1 view .LVU255
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1011              		.loc 1 289 9 is_stmt 0 view .LVU256
+ 1012 0026 5023     		movs	r3, #80
+ 1013 0028 5432     		adds	r2, r2, #84
+ 1014              	.LVL102:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1015              		.loc 1 289 9 view .LVU257
+ 1016 002a 0221     		movs	r1, #2
+ 1017 002c 2046     		mov	r0, r4
+ 1018 002e FFF7FEFF 		bl	USBD_LL_PrepareReceive
+ 1019              	.LVL103:
+ 1020              	.L69:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1021              		.loc 1 289 9 view .LVU258
+ 1022              	.LBE11:
+ 1023              	.LBE10:
+ 561:../../Core/Src/usbd_gs_can.c **** 
+ 1024              		.loc 1 561 1 view .LVU259
+ 1025 0032 0020     		movs	r0, #0
+ 1026 0034 38BD     		pop	{r3, r4, r5, pc}
+ARM GAS  /tmp/ccqiwJRX.s 			page 33
+
+
+ 1027              	.LVL104:
+ 1028              	.L71:
+ 549:../../Core/Src/usbd_gs_can.c **** 		return USBD_OK;
+ 1029              		.loc 1 549 3 is_stmt 1 view .LVU260
+ 1030              	.LBB12:
+ 1031              	.LBI12:
+ 286:../../Core/Src/usbd_gs_can.c **** {
+ 1032              		.loc 1 286 23 view .LVU261
+ 1033              	.LBB13:
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 1034              		.loc 1 288 2 view .LVU262
+ 288:../../Core/Src/usbd_gs_can.c **** 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)&hcan->from_host_frame, sizeof(h
+ 1035              		.loc 1 288 29 is_stmt 0 view .LVU263
+ 1036 0036 D4F8BC22 		ldr	r2, [r4, #700]
+ 1037              	.LVL105:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1038              		.loc 1 289 2 is_stmt 1 view .LVU264
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1039              		.loc 1 289 9 is_stmt 0 view .LVU265
+ 1040 003a 5023     		movs	r3, #80
+ 1041 003c 5432     		adds	r2, r2, #84
+ 1042              	.LVL106:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1043              		.loc 1 289 9 view .LVU266
+ 1044 003e 0221     		movs	r1, #2
+ 1045 0040 2046     		mov	r0, r4
+ 1046              	.LVL107:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1047              		.loc 1 289 9 view .LVU267
+ 1048 0042 FFF7FEFF 		bl	USBD_LL_PrepareReceive
+ 1049              	.LVL108:
+ 289:../../Core/Src/usbd_gs_can.c **** }
+ 1050              		.loc 1 289 9 view .LVU268
+ 1051 0046 F4E7     		b	.L69
+ 1052              	.L73:
+ 1053              		.align	2
+ 1054              	.L72:
+ 1055 0048 00000000 		.word	hGS_CAN
+ 1056              	.LBE13:
+ 1057              	.LBE12:
+ 1058              		.cfi_endproc
+ 1059              	.LFE159:
+ 1061              		.section	.text.USBD_GS_CAN_Init,"ax",%progbits
+ 1062              		.align	1
+ 1063              		.global	USBD_GS_CAN_Init
+ 1064              		.syntax unified
+ 1065              		.thumb
+ 1066              		.thumb_func
+ 1068              	USBD_GS_CAN_Init:
+ 1069              	.LVL109:
+ 1070              	.LFB149:
+ 280:../../Core/Src/usbd_gs_can.c **** 	hcan->TxState = 0;
+ 1071              		.loc 1 280 1 is_stmt 1 view -0
+ 1072              		.cfi_startproc
+ 1073              		@ args = 0, pretend = 0, frame = 0
+ 1074              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1075              		@ link register save eliminated.
+ARM GAS  /tmp/ccqiwJRX.s 			page 34
+
+
+ 281:../../Core/Src/usbd_gs_can.c **** 	pdev->pClassData = hcan;
+ 1076              		.loc 1 281 2 view .LVU270
+ 281:../../Core/Src/usbd_gs_can.c **** 	pdev->pClassData = hcan;
+ 1077              		.loc 1 281 16 is_stmt 0 view .LVU271
+ 1078 0000 0023     		movs	r3, #0
+ 1079 0002 8B64     		str	r3, [r1, #72]
+ 282:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 1080              		.loc 1 282 2 is_stmt 1 view .LVU272
+ 282:../../Core/Src/usbd_gs_can.c **** 	return USBD_OK;
+ 1081              		.loc 1 282 19 is_stmt 0 view .LVU273
+ 1082 0004 C0F8BC12 		str	r1, [r0, #700]
+ 283:../../Core/Src/usbd_gs_can.c **** }
+ 1083              		.loc 1 283 2 is_stmt 1 view .LVU274
+ 284:../../Core/Src/usbd_gs_can.c **** 
+ 1084              		.loc 1 284 1 is_stmt 0 view .LVU275
+ 1085 0008 1846     		mov	r0, r3
+ 1086              	.LVL110:
+ 284:../../Core/Src/usbd_gs_can.c **** 
+ 1087              		.loc 1 284 1 view .LVU276
+ 1088 000a 7047     		bx	lr
+ 1089              		.cfi_endproc
+ 1090              	.LFE149:
+ 1092              		.section	.text.USBD_GS_CAN_GetChannelNumber,"ax",%progbits
+ 1093              		.align	1
+ 1094              		.global	USBD_GS_CAN_GetChannelNumber
+ 1095              		.syntax unified
+ 1096              		.thumb
+ 1097              		.thumb_func
+ 1099              	USBD_GS_CAN_GetChannelNumber:
+ 1100              	.LVL111:
+ 1101              	.LFB163:
+ 595:../../Core/Src/usbd_gs_can.c **** 
+ 596:../../Core/Src/usbd_gs_can.c **** /* CAN interface class callbacks structure */
+ 597:../../Core/Src/usbd_gs_can.c **** USBD_ClassTypeDef USBD_GS_CAN = {
+ 598:../../Core/Src/usbd_gs_can.c **** 	.Init = USBD_GS_CAN_Start,
+ 599:../../Core/Src/usbd_gs_can.c **** 	.DeInit = USBD_GS_CAN_DeInit,
+ 600:../../Core/Src/usbd_gs_can.c **** 	.Setup = USBD_GS_CAN_Setup,
+ 601:../../Core/Src/usbd_gs_can.c **** 	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
+ 602:../../Core/Src/usbd_gs_can.c **** 	.DataIn = USBD_GS_CAN_DataIn,
+ 603:../../Core/Src/usbd_gs_can.c **** 	.DataOut = USBD_GS_CAN_DataOut,
+ 604:../../Core/Src/usbd_gs_can.c **** 	.SOF = USBD_GS_CAN_SOF,
+ 605:../../Core/Src/usbd_gs_can.c **** 	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+ 606:../../Core/Src/usbd_gs_can.c **** 	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+ 607:../../Core/Src/usbd_gs_can.c **** 	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+ 608:../../Core/Src/usbd_gs_can.c **** 	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
+ 609:../../Core/Src/usbd_gs_can.c **** };
+ 610:../../Core/Src/usbd_gs_can.c **** 
+ 611:../../Core/Src/usbd_gs_can.c **** uint8_t USBD_GS_CAN_GetChannelNumber(USBD_HandleTypeDef *pdev, CAN_HANDLE_TYPEDEF* handle) {
+ 1102              		.loc 1 611 92 is_stmt 1 view -0
+ 1103              		.cfi_startproc
+ 1104              		@ args = 0, pretend = 0, frame = 0
+ 1105              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1106              		@ link register save eliminated.
+ 612:../../Core/Src/usbd_gs_can.c **** 
+ 613:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+ 1107              		.loc 1 613 2 view .LVU278
+ 1108              		.loc 1 613 29 is_stmt 0 view .LVU279
+ARM GAS  /tmp/ccqiwJRX.s 			page 35
+
+
+ 1109 0000 D0F8BC22 		ldr	r2, [r0, #700]
+ 1110              	.LVL112:
+ 614:../../Core/Src/usbd_gs_can.c **** 	uint8_t channel = 0xFF;
+ 1111              		.loc 1 614 2 is_stmt 1 view .LVU280
+ 615:../../Core/Src/usbd_gs_can.c **** 
+ 616:../../Core/Src/usbd_gs_can.c **** 	for (uint8_t chan_index = 0; chan_index < CAN_NUM_CHANNELS; chan_index++) {
+ 1112              		.loc 1 616 2 view .LVU281
+ 1113              	.LBB14:
+ 1114              		.loc 1 616 7 view .LVU282
+ 1115              		.loc 1 616 15 is_stmt 0 view .LVU283
+ 1116 0004 0020     		movs	r0, #0
+ 1117              	.LVL113:
+ 1118              	.L76:
+ 1119              		.loc 1 616 31 is_stmt 1 discriminator 1 view .LVU284
+ 1120              		.loc 1 616 2 is_stmt 0 discriminator 1 view .LVU285
+ 1121 0006 0128     		cmp	r0, #1
+ 1122 0008 09D8     		bhi	.L79
+ 617:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1123              		.loc 1 617 3 is_stmt 1 view .LVU286
+ 1124              		.loc 1 617 22 is_stmt 0 view .LVU287
+ 1125 000a 00F12803 		add	r3, r0, #40
+ 1126 000e 02EB8303 		add	r3, r2, r3, lsl #2
+ 1127 0012 5B68     		ldr	r3, [r3, #4]
+ 1128              		.loc 1 617 6 view .LVU288
+ 1129 0014 8B42     		cmp	r3, r1
+ 1130 0016 03D0     		beq	.L77
+ 616:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1131              		.loc 1 616 62 is_stmt 1 discriminator 2 view .LVU289
+ 616:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1132              		.loc 1 616 72 is_stmt 0 discriminator 2 view .LVU290
+ 1133 0018 0130     		adds	r0, r0, #1
+ 1134              	.LVL114:
+ 616:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1135              		.loc 1 616 72 discriminator 2 view .LVU291
+ 1136 001a C0B2     		uxtb	r0, r0
+ 1137              	.LVL115:
+ 616:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1138              		.loc 1 616 72 discriminator 2 view .LVU292
+ 1139 001c F3E7     		b	.L76
+ 1140              	.L79:
+ 616:../../Core/Src/usbd_gs_can.c **** 		if ( hcan->channels[chan_index] == handle) {
+ 1141              		.loc 1 616 72 discriminator 2 view .LVU293
+ 1142              	.LBE14:
+ 614:../../Core/Src/usbd_gs_can.c **** 
+ 1143              		.loc 1 614 10 view .LVU294
+ 1144 001e FF20     		movs	r0, #255
+ 1145              	.LVL116:
+ 1146              	.L77:
+ 618:../../Core/Src/usbd_gs_can.c **** 			channel = chan_index;
+ 619:../../Core/Src/usbd_gs_can.c **** 			break;
+ 620:../../Core/Src/usbd_gs_can.c **** 		}
+ 621:../../Core/Src/usbd_gs_can.c **** 	}
+ 622:../../Core/Src/usbd_gs_can.c **** 
+ 623:../../Core/Src/usbd_gs_can.c **** 	return channel;
+ 1147              		.loc 1 623 2 is_stmt 1 view .LVU295
+ 624:../../Core/Src/usbd_gs_can.c **** }
+ 1148              		.loc 1 624 1 is_stmt 0 view .LVU296
+ARM GAS  /tmp/ccqiwJRX.s 			page 36
+
+
+ 1149 0020 7047     		bx	lr
+ 1150              		.cfi_endproc
+ 1151              	.LFE163:
+ 1153              		.section	.text.USBD_GS_CAN_SendFrame,"ax",%progbits
+ 1154              		.align	1
+ 1155              		.global	USBD_GS_CAN_SendFrame
+ 1156              		.syntax unified
+ 1157              		.thumb
+ 1158              		.thumb_func
+ 1160              	USBD_GS_CAN_SendFrame:
+ 1161              	.LVL117:
+ 1162              	.LFB164:
+ 625:../../Core/Src/usbd_gs_can.c **** 
+ 626:../../Core/Src/usbd_gs_can.c **** uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
+ 627:../../Core/Src/usbd_gs_can.c **** {
+ 1163              		.loc 1 627 1 is_stmt 1 view -0
+ 1164              		.cfi_startproc
+ 1165              		@ args = 0, pretend = 0, frame = 0
+ 1166              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1167              		.loc 1 627 1 is_stmt 0 view .LVU298
+ 1168 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1169              	.LCFI13:
+ 1170              		.cfi_def_cfa_offset 24
+ 1171              		.cfi_offset 3, -24
+ 1172              		.cfi_offset 4, -20
+ 1173              		.cfi_offset 5, -16
+ 1174              		.cfi_offset 6, -12
+ 1175              		.cfi_offset 7, -8
+ 1176              		.cfi_offset 14, -4
+ 1177 0002 0446     		mov	r4, r0
+ 628:../../Core/Src/usbd_gs_can.c **** 	static uint8_t buf[GS_HOST_FRAME_SIZE];
+ 1178              		.loc 1 628 2 is_stmt 1 view .LVU299
+ 629:../../Core/Src/usbd_gs_can.c **** 	uint8_t *send_addr;
+ 1179              		.loc 1 629 2 view .LVU300
+ 630:../../Core/Src/usbd_gs_can.c **** 
+ 631:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 1180              		.loc 1 631 2 view .LVU301
+ 1181              		.loc 1 631 29 is_stmt 0 view .LVU302
+ 1182 0004 D0F8BC52 		ldr	r5, [r0, #700]
+ 1183              	.LVL118:
+ 632:../../Core/Src/usbd_gs_can.c **** 	size_t len = 0;
+ 1184              		.loc 1 632 2 is_stmt 1 view .LVU303
+ 633:../../Core/Src/usbd_gs_can.c **** 
+ 634:../../Core/Src/usbd_gs_can.c ****   #if defined (CANFD_FEATURE_ENABLED)
+ 635:../../Core/Src/usbd_gs_can.c **** 	if (frame->flags & GS_CAN_FLAG_FD) {
+ 1185              		.loc 1 635 2 view .LVU304
+ 1186              		.loc 1 635 11 is_stmt 0 view .LVU305
+ 1187 0008 8B7A     		ldrb	r3, [r1, #10]	@ zero_extendqisi2
+ 1188              		.loc 1 635 5 view .LVU306
+ 1189 000a 13F0020F 		tst	r3, #2
+ 1190 000e 0BD0     		beq	.L85
+ 636:../../Core/Src/usbd_gs_can.c **** 		len = GS_HOST_FRAME_SIZE;
+ 1191              		.loc 1 636 7 view .LVU307
+ 1192 0010 5026     		movs	r6, #80
+ 1193              	.L81:
+ 1194              	.LVL119:
+ 637:../../Core/Src/usbd_gs_can.c **** 	}
+ARM GAS  /tmp/ccqiwJRX.s 			page 37
+
+
+ 638:../../Core/Src/usbd_gs_can.c **** 	else {
+ 639:../../Core/Src/usbd_gs_can.c **** 		len = GS_HOST_CLASSIC_FRAME_SIZE;
+ 640:../../Core/Src/usbd_gs_can.c **** 	}
+ 641:../../Core/Src/usbd_gs_can.c ****   #else
+ 642:../../Core/Src/usbd_gs_can.c **** 	len = GS_HOST_FRAME_SIZE;
+ 643:../../Core/Src/usbd_gs_can.c ****   #endif
+ 644:../../Core/Src/usbd_gs_can.c **** 
+ 645:../../Core/Src/usbd_gs_can.c **** 	if (!hcan->timestamps_enabled) {
+ 1195              		.loc 1 645 2 is_stmt 1 view .LVU308
+ 1196              		.loc 1 645 11 is_stmt 0 view .LVU309
+ 1197 0012 95F8B630 		ldrb	r3, [r5, #182]	@ zero_extendqisi2
+ 1198              		.loc 1 645 5 view .LVU310
+ 1199 0016 03B9     		cbnz	r3, .L82
+ 646:../../Core/Src/usbd_gs_can.c **** 		len -= 4;
+ 1200              		.loc 1 646 3 is_stmt 1 view .LVU311
+ 1201              		.loc 1 646 7 is_stmt 0 view .LVU312
+ 1202 0018 043E     		subs	r6, r6, #4
+ 1203              	.LVL120:
+ 1204              	.L82:
+ 647:../../Core/Src/usbd_gs_can.c **** 	}
+ 648:../../Core/Src/usbd_gs_can.c **** 
+ 649:../../Core/Src/usbd_gs_can.c **** 	send_addr = (uint8_t *)frame;
+ 1205              		.loc 1 649 2 is_stmt 1 view .LVU313
+ 650:../../Core/Src/usbd_gs_can.c **** 
+ 651:../../Core/Src/usbd_gs_can.c **** 	if (hcan->pad_pkts_to_max_pkt_size) {
+ 1206              		.loc 1 651 2 view .LVU314
+ 1207              		.loc 1 651 10 is_stmt 0 view .LVU315
+ 1208 001a 95F8B530 		ldrb	r3, [r5, #181]	@ zero_extendqisi2
+ 1209              		.loc 1 651 5 view .LVU316
+ 1210 001e 2BB9     		cbnz	r3, .L88
+ 1211              	.LVL121:
+ 1212              	.L83:
+ 652:../../Core/Src/usbd_gs_can.c **** 		// When talking to WinUSB it seems to help a lot if the
+ 653:../../Core/Src/usbd_gs_can.c **** 		// size of packet you send equals the max packet size.
+ 654:../../Core/Src/usbd_gs_can.c **** 		// In this mode, fill packets out to max packet size and
+ 655:../../Core/Src/usbd_gs_can.c **** 		// then send.
+ 656:../../Core/Src/usbd_gs_can.c **** 		memcpy(buf, frame, len);
+ 657:../../Core/Src/usbd_gs_can.c **** 
+ 658:../../Core/Src/usbd_gs_can.c **** 		// zero rest of buffer
+ 659:../../Core/Src/usbd_gs_can.c **** 		memset(buf + len, 0, sizeof(buf) - len);
+ 660:../../Core/Src/usbd_gs_can.c **** 		send_addr = buf;
+ 661:../../Core/Src/usbd_gs_can.c **** 		len = sizeof(buf);
+ 662:../../Core/Src/usbd_gs_can.c **** 	}
+ 663:../../Core/Src/usbd_gs_can.c **** 
+ 664:../../Core/Src/usbd_gs_can.c **** 	if (hcan->TxState == 0) {
+ 1213              		.loc 1 664 2 is_stmt 1 view .LVU317
+ 1214              		.loc 1 664 10 is_stmt 0 view .LVU318
+ 1215 0020 AB6C     		ldr	r3, [r5, #72]
+ 1216              		.loc 1 664 5 view .LVU319
+ 1217 0022 8BB1     		cbz	r3, .L89
+ 665:../../Core/Src/usbd_gs_can.c **** 		hcan->TxState = 1;
+ 666:../../Core/Src/usbd_gs_can.c **** 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, send_addr, len);
+ 667:../../Core/Src/usbd_gs_can.c **** 		return USBD_OK;
+ 668:../../Core/Src/usbd_gs_can.c **** 	}
+ 669:../../Core/Src/usbd_gs_can.c **** 	else {
+ 670:../../Core/Src/usbd_gs_can.c **** 		return USBD_BUSY;
+ 1218              		.loc 1 670 10 view .LVU320
+ARM GAS  /tmp/ccqiwJRX.s 			page 38
+
+
+ 1219 0024 0120     		movs	r0, #1
+ 1220              	.LVL122:
+ 1221              	.L84:
+ 671:../../Core/Src/usbd_gs_can.c **** 	}
+ 672:../../Core/Src/usbd_gs_can.c **** }
+ 1222              		.loc 1 672 1 view .LVU321
+ 1223 0026 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1224              	.LVL123:
+ 1225              	.L85:
+ 639:../../Core/Src/usbd_gs_can.c **** 	}
+ 1226              		.loc 1 639 7 view .LVU322
+ 1227 0028 1826     		movs	r6, #24
+ 1228 002a F2E7     		b	.L81
+ 1229              	.LVL124:
+ 1230              	.L88:
+ 656:../../Core/Src/usbd_gs_can.c **** 
+ 1231              		.loc 1 656 3 is_stmt 1 view .LVU323
+ 1232 002c 0B4F     		ldr	r7, .L90
+ 1233 002e 3246     		mov	r2, r6
+ 1234 0030 3846     		mov	r0, r7
+ 1235              	.LVL125:
+ 656:../../Core/Src/usbd_gs_can.c **** 
+ 1236              		.loc 1 656 3 is_stmt 0 view .LVU324
+ 1237 0032 FFF7FEFF 		bl	memcpy
+ 1238              	.LVL126:
+ 659:../../Core/Src/usbd_gs_can.c **** 		send_addr = buf;
+ 1239              		.loc 1 659 3 is_stmt 1 view .LVU325
+ 1240 0036 C6F15002 		rsb	r2, r6, #80
+ 1241 003a 0021     		movs	r1, #0
+ 1242 003c B819     		adds	r0, r7, r6
+ 1243 003e FFF7FEFF 		bl	memset
+ 1244              	.LVL127:
+ 660:../../Core/Src/usbd_gs_can.c **** 		len = sizeof(buf);
+ 1245              		.loc 1 660 3 view .LVU326
+ 661:../../Core/Src/usbd_gs_can.c **** 	}
+ 1246              		.loc 1 661 3 view .LVU327
+ 661:../../Core/Src/usbd_gs_can.c **** 	}
+ 1247              		.loc 1 661 7 is_stmt 0 view .LVU328
+ 1248 0042 5026     		movs	r6, #80
+ 660:../../Core/Src/usbd_gs_can.c **** 		len = sizeof(buf);
+ 1249              		.loc 1 660 13 view .LVU329
+ 1250 0044 3946     		mov	r1, r7
+ 1251 0046 EBE7     		b	.L83
+ 1252              	.LVL128:
+ 1253              	.L89:
+ 665:../../Core/Src/usbd_gs_can.c **** 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, send_addr, len);
+ 1254              		.loc 1 665 3 is_stmt 1 view .LVU330
+ 665:../../Core/Src/usbd_gs_can.c **** 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, send_addr, len);
+ 1255              		.loc 1 665 17 is_stmt 0 view .LVU331
+ 1256 0048 0123     		movs	r3, #1
+ 1257 004a AB64     		str	r3, [r5, #72]
+ 666:../../Core/Src/usbd_gs_can.c **** 		return USBD_OK;
+ 1258              		.loc 1 666 3 is_stmt 1 view .LVU332
+ 1259 004c 3346     		mov	r3, r6
+ 1260 004e 0A46     		mov	r2, r1
+ 1261 0050 8121     		movs	r1, #129
+ 1262              	.LVL129:
+ARM GAS  /tmp/ccqiwJRX.s 			page 39
+
+
+ 666:../../Core/Src/usbd_gs_can.c **** 		return USBD_OK;
+ 1263              		.loc 1 666 3 is_stmt 0 view .LVU333
+ 1264 0052 2046     		mov	r0, r4
+ 1265 0054 FFF7FEFF 		bl	USBD_LL_Transmit
+ 1266              	.LVL130:
+ 667:../../Core/Src/usbd_gs_can.c **** 	}
+ 1267              		.loc 1 667 3 is_stmt 1 view .LVU334
+ 667:../../Core/Src/usbd_gs_can.c **** 	}
+ 1268              		.loc 1 667 10 is_stmt 0 view .LVU335
+ 1269 0058 0020     		movs	r0, #0
+ 1270 005a E4E7     		b	.L84
+ 1271              	.L91:
+ 1272              		.align	2
+ 1273              	.L90:
+ 1274 005c 00000000 		.word	.LANCHOR5
+ 1275              		.cfi_endproc
+ 1276              	.LFE164:
+ 1278              		.section	.text.USBD_GS_CAN_CustomDeviceRequest,"ax",%progbits
+ 1279              		.align	1
+ 1280              		.global	USBD_GS_CAN_CustomDeviceRequest
+ 1281              		.syntax unified
+ 1282              		.thumb
+ 1283              		.thumb_func
+ 1285              	USBD_GS_CAN_CustomDeviceRequest:
+ 1286              	.LVL131:
+ 1287              	.LFB165:
+ 673:../../Core/Src/usbd_gs_can.c **** 
+ 674:../../Core/Src/usbd_gs_can.c **** bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 675:../../Core/Src/usbd_gs_can.c **** {
+ 1288              		.loc 1 675 1 is_stmt 1 view -0
+ 1289              		.cfi_startproc
+ 1290              		@ args = 0, pretend = 0, frame = 0
+ 1291              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1292              		.loc 1 675 1 is_stmt 0 view .LVU337
+ 1293 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1294              	.LCFI14:
+ 1295              		.cfi_def_cfa_offset 24
+ 1296              		.cfi_offset 3, -24
+ 1297              		.cfi_offset 4, -20
+ 1298              		.cfi_offset 5, -16
+ 1299              		.cfi_offset 6, -12
+ 1300              		.cfi_offset 7, -8
+ 1301              		.cfi_offset 14, -4
+ 676:../../Core/Src/usbd_gs_can.c **** 	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
+ 1302              		.loc 1 676 2 is_stmt 1 view .LVU338
+ 1303              		.loc 1 676 9 is_stmt 0 view .LVU339
+ 1304 0002 4B78     		ldrb	r3, [r1, #1]	@ zero_extendqisi2
+ 1305              		.loc 1 676 5 view .LVU340
+ 1306 0004 202B     		cmp	r3, #32
+ 1307 0006 01D0     		beq	.L100
+ 677:../../Core/Src/usbd_gs_can.c **** 
+ 678:../../Core/Src/usbd_gs_can.c **** 		switch (req->wIndex) {
+ 679:../../Core/Src/usbd_gs_can.c **** 
+ 680:../../Core/Src/usbd_gs_can.c **** 			case 0x0004:
+ 681:../../Core/Src/usbd_gs_can.c **** 				memcpy(USBD_StrDesc, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
+ 682:../../Core/Src/usbd_gs_can.c **** 				USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
+ 683:../../Core/Src/usbd_gs_can.c **** 				return true;
+ARM GAS  /tmp/ccqiwJRX.s 			page 40
+
+
+ 684:../../Core/Src/usbd_gs_can.c **** 
+ 685:../../Core/Src/usbd_gs_can.c **** 			case 0x0005:
+ 686:../../Core/Src/usbd_gs_can.c **** 				if (req->wValue==0) { // only return our GUID for interface #0
+ 687:../../Core/Src/usbd_gs_can.c **** 					memcpy(USBD_StrDesc, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+ 688:../../Core/Src/usbd_gs_can.c **** 					USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength))
+ 689:../../Core/Src/usbd_gs_can.c **** 					return true;
+ 690:../../Core/Src/usbd_gs_can.c **** 				}
+ 691:../../Core/Src/usbd_gs_can.c **** 				break;
+ 692:../../Core/Src/usbd_gs_can.c **** 		}
+ 693:../../Core/Src/usbd_gs_can.c **** 	}
+ 694:../../Core/Src/usbd_gs_can.c **** 
+ 695:../../Core/Src/usbd_gs_can.c **** 	return false;
+ 1308              		.loc 1 695 9 view .LVU341
+ 1309 0008 0020     		movs	r0, #0
+ 1310              	.LVL132:
+ 1311              	.L93:
+ 696:../../Core/Src/usbd_gs_can.c **** }
+ 1312              		.loc 1 696 1 view .LVU342
+ 1313 000a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1314              	.LVL133:
+ 1315              	.L100:
+ 1316              		.loc 1 696 1 view .LVU343
+ 1317 000c 0646     		mov	r6, r0
+ 1318 000e 0C46     		mov	r4, r1
+ 678:../../Core/Src/usbd_gs_can.c **** 
+ 1319              		.loc 1 678 3 is_stmt 1 view .LVU344
+ 678:../../Core/Src/usbd_gs_can.c **** 
+ 1320              		.loc 1 678 14 is_stmt 0 view .LVU345
+ 1321 0010 8B88     		ldrh	r3, [r1, #4]
+ 678:../../Core/Src/usbd_gs_can.c **** 
+ 1322              		.loc 1 678 3 view .LVU346
+ 1323 0012 042B     		cmp	r3, #4
+ 1324 0014 03D0     		beq	.L94
+ 678:../../Core/Src/usbd_gs_can.c **** 
+ 1325              		.loc 1 678 3 view .LVU347
+ 1326 0016 052B     		cmp	r3, #5
+ 1327 0018 1BD0     		beq	.L95
+ 1328 001a 0020     		movs	r0, #0
+ 1329              	.LVL134:
+ 678:../../Core/Src/usbd_gs_can.c **** 
+ 1330              		.loc 1 678 3 view .LVU348
+ 1331 001c F5E7     		b	.L93
+ 1332              	.LVL135:
+ 1333              	.L94:
+ 681:../../Core/Src/usbd_gs_can.c **** 				USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
+ 1334              		.loc 1 681 5 is_stmt 1 view .LVU349
+ 1335 001e 174F     		ldr	r7, .L102
+ 1336 0020 07F1480E 		add	lr, r7, #72
+ 1337 0024 164D     		ldr	r5, .L102+4
+ 1338 0026 8837     		adds	r7, r7, #136
+ 1339              	.LVL136:
+ 1340              	.L96:
+ 681:../../Core/Src/usbd_gs_can.c **** 				USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
+ 1341              		.loc 1 681 5 is_stmt 0 view .LVU350
+ 1342 0028 F446     		mov	ip, lr
+ 1343 002a BCE80F00 		ldmia	ip!, {r0, r1, r2, r3}
+ 1344 002e 2860     		str	r0, [r5]	@ unaligned
+ARM GAS  /tmp/ccqiwJRX.s 			page 41
+
+
+ 1345 0030 6960     		str	r1, [r5, #4]	@ unaligned
+ 1346 0032 AA60     		str	r2, [r5, #8]	@ unaligned
+ 1347 0034 EB60     		str	r3, [r5, #12]	@ unaligned
+ 1348 0036 E646     		mov	lr, ip
+ 1349 0038 1035     		adds	r5, r5, #16
+ 1350 003a BC45     		cmp	ip, r7
+ 1351 003c F4D1     		bne	.L96
+ 682:../../Core/Src/usbd_gs_can.c **** 				return true;
+ 1352              		.loc 1 682 5 is_stmt 1 view .LVU351
+ 682:../../Core/Src/usbd_gs_can.c **** 				return true;
+ 1353              		.loc 1 682 42 is_stmt 0 view .LVU352
+ 1354 003e E288     		ldrh	r2, [r4, #6]
+ 682:../../Core/Src/usbd_gs_can.c **** 				return true;
+ 1355              		.loc 1 682 5 view .LVU353
+ 1356 0040 402A     		cmp	r2, #64
+ 1357 0042 28BF     		it	cs
+ 1358 0044 4022     		movcs	r2, #64
+ 1359 0046 0E49     		ldr	r1, .L102+4
+ 1360 0048 3046     		mov	r0, r6
+ 1361 004a FFF7FEFF 		bl	USBD_CtlSendData
+ 1362              	.LVL137:
+ 683:../../Core/Src/usbd_gs_can.c **** 
+ 1363              		.loc 1 683 5 is_stmt 1 view .LVU354
+ 683:../../Core/Src/usbd_gs_can.c **** 
+ 1364              		.loc 1 683 12 is_stmt 0 view .LVU355
+ 1365 004e 0120     		movs	r0, #1
+ 1366 0050 DBE7     		b	.L93
+ 1367              	.LVL138:
+ 1368              	.L95:
+ 686:../../Core/Src/usbd_gs_can.c **** 					memcpy(USBD_StrDesc, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+ 1369              		.loc 1 686 5 is_stmt 1 view .LVU356
+ 686:../../Core/Src/usbd_gs_can.c **** 					memcpy(USBD_StrDesc, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+ 1370              		.loc 1 686 12 is_stmt 0 view .LVU357
+ 1371 0052 4B88     		ldrh	r3, [r1, #2]
+ 686:../../Core/Src/usbd_gs_can.c **** 					memcpy(USBD_StrDesc, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+ 1372              		.loc 1 686 8 view .LVU358
+ 1373 0054 0BB1     		cbz	r3, .L101
+ 695:../../Core/Src/usbd_gs_can.c **** }
+ 1374              		.loc 1 695 9 view .LVU359
+ 1375 0056 0020     		movs	r0, #0
+ 1376              	.LVL139:
+ 695:../../Core/Src/usbd_gs_can.c **** }
+ 1377              		.loc 1 695 9 view .LVU360
+ 1378 0058 D7E7     		b	.L93
+ 1379              	.LVL140:
+ 1380              	.L101:
+ 687:../../Core/Src/usbd_gs_can.c **** 					USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength))
+ 1381              		.loc 1 687 6 is_stmt 1 view .LVU361
+ 1382 005a 094D     		ldr	r5, .L102+4
+ 1383 005c 9222     		movs	r2, #146
+ 1384 005e 0949     		ldr	r1, .L102+8
+ 1385              	.LVL141:
+ 687:../../Core/Src/usbd_gs_can.c **** 					USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength))
+ 1386              		.loc 1 687 6 is_stmt 0 view .LVU362
+ 1387 0060 2846     		mov	r0, r5
+ 1388              	.LVL142:
+ 687:../../Core/Src/usbd_gs_can.c **** 					USBD_CtlSendData(pdev, USBD_StrDesc, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength))
+ARM GAS  /tmp/ccqiwJRX.s 			page 42
+
+
+ 1389              		.loc 1 687 6 view .LVU363
+ 1390 0062 FFF7FEFF 		bl	memcpy
+ 1391              	.LVL143:
+ 688:../../Core/Src/usbd_gs_can.c **** 					return true;
+ 1392              		.loc 1 688 6 is_stmt 1 view .LVU364
+ 688:../../Core/Src/usbd_gs_can.c **** 					return true;
+ 1393              		.loc 1 688 43 is_stmt 0 view .LVU365
+ 1394 0066 E288     		ldrh	r2, [r4, #6]
+ 688:../../Core/Src/usbd_gs_can.c **** 					return true;
+ 1395              		.loc 1 688 6 view .LVU366
+ 1396 0068 922A     		cmp	r2, #146
+ 1397 006a 28BF     		it	cs
+ 1398 006c 9222     		movcs	r2, #146
+ 1399 006e 2946     		mov	r1, r5
+ 1400 0070 3046     		mov	r0, r6
+ 1401 0072 FFF7FEFF 		bl	USBD_CtlSendData
+ 1402              	.LVL144:
+ 689:../../Core/Src/usbd_gs_can.c **** 				}
+ 1403              		.loc 1 689 6 is_stmt 1 view .LVU367
+ 689:../../Core/Src/usbd_gs_can.c **** 				}
+ 1404              		.loc 1 689 13 is_stmt 0 view .LVU368
+ 1405 0076 0120     		movs	r0, #1
+ 1406 0078 C7E7     		b	.L93
+ 1407              	.L103:
+ 1408 007a 00BF     		.align	2
+ 1409              	.L102:
+ 1410 007c 00000000 		.word	.LANCHOR0
+ 1411 0080 00000000 		.word	USBD_StrDesc
+ 1412 0084 88000000 		.word	.LANCHOR0+136
+ 1413              		.cfi_endproc
+ 1414              	.LFE165:
+ 1416              		.section	.text.USBD_GS_CAN_CustomInterfaceRequest,"ax",%progbits
+ 1417              		.align	1
+ 1418              		.global	USBD_GS_CAN_CustomInterfaceRequest
+ 1419              		.syntax unified
+ 1420              		.thumb
+ 1421              		.thumb_func
+ 1423              	USBD_GS_CAN_CustomInterfaceRequest:
+ 1424              	.LVL145:
+ 1425              	.LFB166:
+ 697:../../Core/Src/usbd_gs_can.c **** 
+ 698:../../Core/Src/usbd_gs_can.c **** bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 699:../../Core/Src/usbd_gs_can.c **** {
+ 1426              		.loc 1 699 1 is_stmt 1 view -0
+ 1427              		.cfi_startproc
+ 1428              		@ args = 0, pretend = 0, frame = 0
+ 1429              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1430              		.loc 1 699 1 is_stmt 0 view .LVU370
+ 1431 0000 08B5     		push	{r3, lr}
+ 1432              	.LCFI15:
+ 1433              		.cfi_def_cfa_offset 8
+ 1434              		.cfi_offset 3, -8
+ 1435              		.cfi_offset 14, -4
+ 700:../../Core/Src/usbd_gs_can.c **** 	return USBD_GS_CAN_CustomDeviceRequest(pdev, req);
+ 1436              		.loc 1 700 2 is_stmt 1 view .LVU371
+ 1437              		.loc 1 700 9 is_stmt 0 view .LVU372
+ 1438 0002 FFF7FEFF 		bl	USBD_GS_CAN_CustomDeviceRequest
+ARM GAS  /tmp/ccqiwJRX.s 			page 43
+
+
+ 1439              	.LVL146:
+ 701:../../Core/Src/usbd_gs_can.c **** }
+ 1440              		.loc 1 701 1 view .LVU373
+ 1441 0006 08BD     		pop	{r3, pc}
+ 1442              		.cfi_endproc
+ 1443              	.LFE166:
+ 1445              		.section	.text.USBD_GS_CAN_DfuDetachRequested,"ax",%progbits
+ 1446              		.align	1
+ 1447              		.global	USBD_GS_CAN_DfuDetachRequested
+ 1448              		.syntax unified
+ 1449              		.thumb
+ 1450              		.thumb_func
+ 1452              	USBD_GS_CAN_DfuDetachRequested:
+ 1453              	.LVL147:
+ 1454              	.LFB167:
+ 702:../../Core/Src/usbd_gs_can.c **** 
+ 703:../../Core/Src/usbd_gs_can.c **** bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
+ 704:../../Core/Src/usbd_gs_can.c **** {
+ 1455              		.loc 1 704 1 is_stmt 1 view -0
+ 1456              		.cfi_startproc
+ 1457              		@ args = 0, pretend = 0, frame = 0
+ 1458              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1459              		@ link register save eliminated.
+ 705:../../Core/Src/usbd_gs_can.c **** 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+ 1460              		.loc 1 705 2 view .LVU375
+ 1461              		.loc 1 705 29 is_stmt 0 view .LVU376
+ 1462 0000 D0F8BC32 		ldr	r3, [r0, #700]
+ 1463              	.LVL148:
+ 706:../../Core/Src/usbd_gs_can.c **** 	return hcan->dfu_detach_requested;
+ 1464              		.loc 1 706 2 is_stmt 1 view .LVU377
+ 707:../../Core/Src/usbd_gs_can.c **** }
+ 1465              		.loc 1 707 1 is_stmt 0 view .LVU378
+ 1466 0004 93F8B400 		ldrb	r0, [r3, #180]	@ zero_extendqisi2
+ 1467              	.LVL149:
+ 1468              		.loc 1 707 1 view .LVU379
+ 1469 0008 7047     		bx	lr
+ 1470              		.cfi_endproc
+ 1471              	.LFE167:
+ 1473              		.global	USBD_GS_CAN
+ 1474              		.section	.rodata
+ 1475              		.align	2
+ 1476              		.set	.LANCHOR0,. + 0
+ 1477              	.LC0:
+ 1478 0000 09023200 		.ascii	"\011\0022\000\002\001\004\200K\011\004\000\000\002\377"
+ 1478      02010480 
+ 1478      4B090400 
+ 1478      0002FF
+ 1479 000f FFFF0007 		.ascii	"\377\377\000\007\005\201\002@\000\000\007\005\002\002"
+ 1479      05810240 
+ 1479      00000705 
+ 1479      0202
+ 1480 001d 40000009 		.ascii	"@\000\000\011\004\001\000\000\376\001\001\340\011!\013"
+ 1480      04010000 
+ 1480      FE0101E0 
+ 1480      09210B
+ 1481 002c FF000008 		.ascii	"\377\000\000\010\032\001"
+ 1481      1A01
+ARM GAS  /tmp/ccqiwJRX.s 			page 44
+
+
+ 1482 0032 0000     		.space	2
+ 1483              	.LC2:
+ 1484 0034 12034D00 		.ascii	"\022\003M\000S\000F\000T\0001\0000\0000\000 \000"
+ 1484      53004600 
+ 1484      54003100 
+ 1484      30003000 
+ 1484      2000
+ 1485 0046 0000     		.space	2
+ 1486              	.LC3:
+ 1487 0048 40000000 		.ascii	"@\000\000\000\000\001\004\000\002\000\000\000\000\000"
+ 1487      00010400 
+ 1487      02000000 
+ 1487      0000
+ 1488 0056 00000001 		.ascii	"\000\000\000\001WINUSB\000\000\000\000\000\000\000\000"
+ 1488      57494E55 
+ 1488      53420000 
+ 1488      00000000 
+ 1488      0000
+ 1489 0068 00000000 		.ascii	"\000\000\000\000\000\000\000\000\001\001WINUSB\000\000"
+ 1489      00000000 
+ 1489      01015749 
+ 1489      4E555342 
+ 1489      0000
+ 1490 007a 00000000 		.ascii	"\000\000\000\000\000\000\000\000\000\000\000\000\000"
+ 1490      00000000 
+ 1490      00000000 
+ 1490      00
+ 1491 0087 00       		.ascii	"\000"
+ 1492              	.LC4:
+ 1493 0088 92000000 		.ascii	"\222\000\000\000\000\001\005\000\001\000\210\000\000"
+ 1493      00010500 
+ 1493      01008800 
+ 1493      00
+ 1494 0095 00070000 		.ascii	"\000\007\000\000\000*\000D\000e\000v\000i\000c\000e"
+ 1494      002A0044 
+ 1494      00650076 
+ 1494      00690063 
+ 1494      0065
+ 1495 00a7 0049006E 		.ascii	"\000I\000n\000t\000e\000r\000f\000a\000c\000e\000G\000"
+ 1495      00740065 
+ 1495      00720066 
+ 1495      00610063 
+ 1495      00650047 
+ 1496 00bc 55004900 		.ascii	"U\000I\000D\000s\000\000\000P\000\000\000{\000c\000"
+ 1496      44007300 
+ 1496      00005000 
+ 1496      00007B00 
+ 1496      6300
+ 1497 00ce 31003500 		.ascii	"1\0005\000b\0004\0003\0000\0008\000-\0000\0004\000d"
+ 1497      62003400 
+ 1497      33003000 
+ 1497      38002D00 
+ 1497      30003400 
+ 1498 00e3 0033002D 		.ascii	"\0003\000-\0001\0001\000e\0006\000-\000b\0003\000e\000"
+ 1498      00310031 
+ 1498      00650036 
+ 1498      002D0062 
+ARM GAS  /tmp/ccqiwJRX.s 			page 45
+
+
+ 1498      00330065 
+ 1499 00f8 61002D00 		.ascii	"a\000-\0006\0000\0005\0007\0001\0008\0009\000e\0006"
+ 1499      36003000 
+ 1499      35003700 
+ 1499      31003800 
+ 1499      39006500 
+ 1500 010d 00340034 		.ascii	"\0004\0004\0003\000}\000\000\000\000\000"
+ 1500      0033007D 
+ 1500      00000000 
+ 1500      00
+ 1501              		.section	.bss.buf.0,"aw",%nobits
+ 1502              		.align	2
+ 1503              		.set	.LANCHOR5,. + 0
+ 1506              	buf.0:
+ 1507 0000 00000000 		.space	80
+ 1507      00000000 
+ 1507      00000000 
+ 1507      00000000 
+ 1507      00000000 
+ 1508              		.section	.bss.ifalt.1,"aw",%nobits
+ 1509              		.set	.LANCHOR4,. + 0
+ 1512              	ifalt.1:
+ 1513 0000 00       		.space	1
+ 1514              		.section	.data.USBD_GS_CAN,"aw"
+ 1515              		.align	2
+ 1518              	USBD_GS_CAN:
+ 1519 0000 00000000 		.word	USBD_GS_CAN_Start
+ 1520 0004 00000000 		.word	USBD_GS_CAN_DeInit
+ 1521 0008 00000000 		.word	USBD_GS_CAN_Setup
+ 1522 000c 00000000 		.space	4
+ 1523 0010 00000000 		.word	USBD_GS_CAN_EP0_RxReady
+ 1524 0014 00000000 		.word	USBD_GS_CAN_DataIn
+ 1525 0018 00000000 		.word	USBD_GS_CAN_DataOut
+ 1526 001c 00000000 		.word	USBD_GS_CAN_SOF
+ 1527 0020 00000000 		.space	8
+ 1527      00000000 
+ 1528 0028 00000000 		.word	USBD_GS_CAN_GetCfgDesc
+ 1529 002c 00000000 		.word	USBD_GS_CAN_GetCfgDesc
+ 1530 0030 00000000 		.word	USBD_GS_CAN_GetCfgDesc
+ 1531 0034 00000000 		.space	4
+ 1532 0038 00000000 		.word	USBD_GS_CAN_GetStrDesc
+ 1533              		.section	.rodata.USBD_GS_CAN_btconst,"a"
+ 1534              		.align	2
+ 1535              		.set	.LANCHOR2,. + 0
+ 1538              	USBD_GS_CAN_btconst:
+ 1539 0000 F3050000 		.word	1523
+ 1540 0004 005A6202 		.word	40000000
+ 1541 0008 01000000 		.word	1
+ 1542 000c 10000000 		.word	16
+ 1543 0010 01000000 		.word	1
+ 1544 0014 08000000 		.word	8
+ 1545 0018 04000000 		.word	4
+ 1546 001c 01000000 		.word	1
+ 1547 0020 00040000 		.word	1024
+ 1548 0024 01000000 		.word	1
+ 1549              		.section	.rodata.USBD_GS_CAN_btconst_extended,"a"
+ 1550              		.align	2
+ARM GAS  /tmp/ccqiwJRX.s 			page 46
+
+
+ 1551              		.set	.LANCHOR3,. + 0
+ 1554              	USBD_GS_CAN_btconst_extended:
+ 1555 0000 F3050000 		.word	1523
+ 1556 0004 005A6202 		.word	40000000
+ 1557 0008 01000000 		.word	1
+ 1558 000c 10000000 		.word	16
+ 1559 0010 01000000 		.word	1
+ 1560 0014 08000000 		.word	8
+ 1561 0018 04000000 		.word	4
+ 1562 001c 01000000 		.word	1
+ 1563 0020 00040000 		.word	1024
+ 1564 0024 01000000 		.word	1
+ 1565 0028 01000000 		.word	1
+ 1566 002c 10000000 		.word	16
+ 1567 0030 01000000 		.word	1
+ 1568 0034 08000000 		.word	8
+ 1569 0038 04000000 		.word	4
+ 1570 003c 01000000 		.word	1
+ 1571 0040 00040000 		.word	1024
+ 1572 0044 01000000 		.word	1
+ 1573              		.section	.rodata.USBD_GS_CAN_dconf,"a"
+ 1574              		.align	2
+ 1575              		.set	.LANCHOR1,. + 0
+ 1578              	USBD_GS_CAN_dconf:
+ 1579 0000 00       		.byte	0
+ 1580 0001 00       		.byte	0
+ 1581 0002 00       		.byte	0
+ 1582 0003 01       		.byte	1
+ 1583 0004 02000000 		.word	2
+ 1584 0008 01000000 		.word	1
+ 1585              		.text
+ 1586              	.Letext0:
+ 1587              		.file 2 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/lib/gcc/arm-none-eabi
+ 1588              		.file 3 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
+ 1589              		.file 4 "/home/joseluiz/Programs/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux/arm-none-eabi/include
+ 1590              		.file 5 "../../Drivers/cmsis_device_h7/Include/stm32h743xx.h"
+ 1591              		.file 6 "../../Drivers/cmsis_device_h7/Include/stm32h7xx.h"
+ 1592              		.file 7 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_def.h"
+ 1593              		.file 8 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_dma.h"
+ 1594              		.file 9 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_fdcan.h"
+ 1595              		.file 10 "../../Drivers/stm32h7xx_hal_driver/Inc/stm32h7xx_hal_tim.h"
+ 1596              		.file 11 "../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 1597              		.file 12 "../../Middlewares/Third_Party/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h"
+ 1598              		.file 13 "../../Middlewares/Third_Party/FreeRTOS/include/queue.h"
+ 1599              		.file 14 "../../Core/Inc/gs_usb.h"
+ 1600              		.file 15 "../../Core/Inc/usbd_gs_can.h"
+ 1601              		.file 16 "<built-in>"
+ 1602              		.file 17 "../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h"
+ 1603              		.file 18 "../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h"
+ 1604              		.file 19 "../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h"
+ 1605              		.file 20 "../../Core/Inc/can.h"
+ARM GAS  /tmp/ccqiwJRX.s 			page 47
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbd_gs_can.c
+     /tmp/ccqiwJRX.s:19     .text.USBD_GS_CAN_DataIn:0000000000000000 $t
+     /tmp/ccqiwJRX.s:24     .text.USBD_GS_CAN_DataIn:0000000000000000 USBD_GS_CAN_DataIn
+     /tmp/ccqiwJRX.s:51     .text.USBD_GS_CAN_SOF:0000000000000000 $t
+     /tmp/ccqiwJRX.s:56     .text.USBD_GS_CAN_SOF:0000000000000000 USBD_GS_CAN_SOF
+     /tmp/ccqiwJRX.s:84     .text.USBD_GS_CAN_SOF:0000000000000014 $d
+     /tmp/ccqiwJRX.s:89     .text.USBD_GS_CAN_GetCfgDesc:0000000000000000 $t
+     /tmp/ccqiwJRX.s:94     .text.USBD_GS_CAN_GetCfgDesc:0000000000000000 USBD_GS_CAN_GetCfgDesc
+     /tmp/ccqiwJRX.s:138    .text.USBD_GS_CAN_GetCfgDesc:0000000000000030 $d
+     /tmp/ccqiwJRX.s:144    .rodata.USBD_GS_CAN_GetStrDesc.str1.4:0000000000000000 $d
+     /tmp/ccqiwJRX.s:148    .text.USBD_GS_CAN_GetStrDesc:0000000000000000 $t
+     /tmp/ccqiwJRX.s:154    .text.USBD_GS_CAN_GetStrDesc:0000000000000000 USBD_GS_CAN_GetStrDesc
+     /tmp/ccqiwJRX.s:232    .text.USBD_GS_CAN_GetStrDesc:0000000000000040 $d
+     /tmp/ccqiwJRX.s:239    .text.USBD_GS_CAN_EP0_RxReady:0000000000000000 $t
+     /tmp/ccqiwJRX.s:244    .text.USBD_GS_CAN_EP0_RxReady:0000000000000000 USBD_GS_CAN_EP0_RxReady
+     /tmp/ccqiwJRX.s:279    .text.USBD_GS_CAN_EP0_RxReady:0000000000000016 $d
+     /tmp/ccqiwJRX.s:291    .text.USBD_GS_CAN_EP0_RxReady:0000000000000022 $t
+     /tmp/ccqiwJRX.s:446    .text.USBD_GS_CAN_DFU_Request:0000000000000000 $t
+     /tmp/ccqiwJRX.s:451    .text.USBD_GS_CAN_DFU_Request:0000000000000000 USBD_GS_CAN_DFU_Request
+     /tmp/ccqiwJRX.s:528    .text.USBD_GS_CAN_Config_Request:0000000000000000 $t
+     /tmp/ccqiwJRX.s:533    .text.USBD_GS_CAN_Config_Request:0000000000000000 USBD_GS_CAN_Config_Request
+     /tmp/ccqiwJRX.s:565    .text.USBD_GS_CAN_Config_Request:0000000000000016 $d
+     /tmp/ccqiwJRX.s:579    .text.USBD_GS_CAN_Config_Request:0000000000000024 $t
+     /tmp/ccqiwJRX.s:716    .text.USBD_GS_CAN_Config_Request:00000000000000d4 $d
+     /tmp/ccqiwJRX.s:723    .text.USBD_GS_CAN_Vendor_Request:0000000000000000 $t
+     /tmp/ccqiwJRX.s:728    .text.USBD_GS_CAN_Vendor_Request:0000000000000000 USBD_GS_CAN_Vendor_Request
+     /tmp/ccqiwJRX.s:783    .text.USBD_GS_CAN_Setup:0000000000000000 $t
+     /tmp/ccqiwJRX.s:788    .text.USBD_GS_CAN_Setup:0000000000000000 USBD_GS_CAN_Setup
+     /tmp/ccqiwJRX.s:846    .text.USBD_GS_CAN_Setup:0000000000000030 $d
+     /tmp/ccqiwJRX.s:851    .text.USBD_GS_CAN_DeInit:0000000000000000 $t
+     /tmp/ccqiwJRX.s:856    .text.USBD_GS_CAN_DeInit:0000000000000000 USBD_GS_CAN_DeInit
+     /tmp/ccqiwJRX.s:891    .text.USBD_GS_CAN_Start:0000000000000000 $t
+     /tmp/ccqiwJRX.s:896    .text.USBD_GS_CAN_Start:0000000000000000 USBD_GS_CAN_Start
+     /tmp/ccqiwJRX.s:958    .text.USBD_GS_CAN_DataOut:0000000000000000 $t
+     /tmp/ccqiwJRX.s:963    .text.USBD_GS_CAN_DataOut:0000000000000000 USBD_GS_CAN_DataOut
+     /tmp/ccqiwJRX.s:1055   .text.USBD_GS_CAN_DataOut:0000000000000048 $d
+     /tmp/ccqiwJRX.s:1062   .text.USBD_GS_CAN_Init:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1068   .text.USBD_GS_CAN_Init:0000000000000000 USBD_GS_CAN_Init
+     /tmp/ccqiwJRX.s:1093   .text.USBD_GS_CAN_GetChannelNumber:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1099   .text.USBD_GS_CAN_GetChannelNumber:0000000000000000 USBD_GS_CAN_GetChannelNumber
+     /tmp/ccqiwJRX.s:1154   .text.USBD_GS_CAN_SendFrame:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1160   .text.USBD_GS_CAN_SendFrame:0000000000000000 USBD_GS_CAN_SendFrame
+     /tmp/ccqiwJRX.s:1274   .text.USBD_GS_CAN_SendFrame:000000000000005c $d
+     /tmp/ccqiwJRX.s:1279   .text.USBD_GS_CAN_CustomDeviceRequest:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1285   .text.USBD_GS_CAN_CustomDeviceRequest:0000000000000000 USBD_GS_CAN_CustomDeviceRequest
+     /tmp/ccqiwJRX.s:1410   .text.USBD_GS_CAN_CustomDeviceRequest:000000000000007c $d
+     /tmp/ccqiwJRX.s:1417   .text.USBD_GS_CAN_CustomInterfaceRequest:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1423   .text.USBD_GS_CAN_CustomInterfaceRequest:0000000000000000 USBD_GS_CAN_CustomInterfaceRequest
+     /tmp/ccqiwJRX.s:1446   .text.USBD_GS_CAN_DfuDetachRequested:0000000000000000 $t
+     /tmp/ccqiwJRX.s:1452   .text.USBD_GS_CAN_DfuDetachRequested:0000000000000000 USBD_GS_CAN_DfuDetachRequested
+     /tmp/ccqiwJRX.s:1518   .data.USBD_GS_CAN:0000000000000000 USBD_GS_CAN
+     /tmp/ccqiwJRX.s:1475   .rodata:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1502   .bss.buf.0:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1506   .bss.buf.0:0000000000000000 buf.0
+     /tmp/ccqiwJRX.s:1512   .bss.ifalt.1:0000000000000000 ifalt.1
+     /tmp/ccqiwJRX.s:1513   .bss.ifalt.1:0000000000000000 $d
+ARM GAS  /tmp/ccqiwJRX.s 			page 48
+
+
+     /tmp/ccqiwJRX.s:1515   .data.USBD_GS_CAN:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1534   .rodata.USBD_GS_CAN_btconst:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1538   .rodata.USBD_GS_CAN_btconst:0000000000000000 USBD_GS_CAN_btconst
+     /tmp/ccqiwJRX.s:1550   .rodata.USBD_GS_CAN_btconst_extended:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1554   .rodata.USBD_GS_CAN_btconst_extended:0000000000000000 USBD_GS_CAN_btconst_extended
+     /tmp/ccqiwJRX.s:1574   .rodata.USBD_GS_CAN_dconf:0000000000000000 $d
+     /tmp/ccqiwJRX.s:1578   .rodata.USBD_GS_CAN_dconf:0000000000000000 USBD_GS_CAN_dconf
+
+UNDEFINED SYMBOLS
+htim2
+USBD_StrDesc
+USBD_CtlError
+USBD_GetString
+can_identify_cb
+can_set_termination
+can_enable
+can_disable
+can_set_bittiming
+can_set_data_bittiming
+USBD_CtlSendData
+USBD_CtlPrepareRx
+can_get_termination
+memcpy
+USBD_LL_CloseEP
+USBD_LL_OpenEP
+USBD_LL_PrepareReceive
+USBD_LL_GetRxDataSize
+xQueueGenericSendFromISR
+hGS_CAN
+memset
+USBD_LL_Transmit
